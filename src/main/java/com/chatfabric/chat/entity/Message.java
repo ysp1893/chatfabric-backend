@@ -17,6 +17,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
@@ -47,8 +48,33 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @Column(nullable = false, length = 2000)
+    @Column(length = 2000)
     private String content;
+
+    @Lob
+    @Column(name = "ciphertext")
+    private String ciphertext;
+
+    @Column(name = "nonce", length = 1024)
+    private String nonce;
+
+    @Column(name = "algorithm", length = 100)
+    private String algorithm;
+
+    @Lob
+    @Column(name = "encrypted_message_key")
+    private String encryptedMessageKey;
+
+    @Lob
+    @Column(name = "signature")
+    private String signature;
+
+    @Column(name = "key_version")
+    private Integer keyVersion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "message_format", length = 30)
+    private MessageFormat messageFormat;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

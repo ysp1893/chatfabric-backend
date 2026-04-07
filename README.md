@@ -51,6 +51,8 @@ com.chatfabric.chat
 - In-memory per-minute API rate limiting
 - Request logging and audit event logging
 - Stronger username and payload validation
+- E2EE-ready public key registration and lookup APIs
+- Dual-mode message model supporting both legacy plaintext and encrypted payload metadata
 
 ## API Summary
 
@@ -63,6 +65,8 @@ com.chatfabric.chat
 
 - `GET /api/users`
 - `GET /api/users/{id}`
+- `POST /api/keys/register`
+- `GET /api/keys/{userId}/active`
 - `POST /api/chats`
 - `GET /api/chats/{userId}`
 - `POST /api/messages`
@@ -396,6 +400,95 @@ Expected response:
 - CORS is origin-restricted through configuration.
 - Audit logs record auth success/failure and chat/message actions.
 - Replace the default `JWT_SECRET` in real environments.
+
+## Stage C1: E2EE-Ready Backend
+
+The backend now includes the first practical E2EE preparation layer while keeping existing plaintext chat flows working.
+
+### What Stage C1 Adds
+
+- `UserKey` storage for public encryption and signing keys
+- public key registration endpoint for the authenticated user
+- public key lookup endpoint for any user
+- message schema support for encrypted payload metadata
+- dual message formats:
+  - `PLAINTEXT_V1`
+  - `E2EE_V1`
+
+### Public Key APIs
+
+Register or rotate the active key for the authenticated user:
+
+```http
+POST http://localhost:8080/api/keys/register
+Authorization: Bearer <jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "publicEncryptionKey": "base64-or-pem-value",
+  "publicSigningKey": "base64-or-pem-value",
+  "keyVersion": 1
+}
+```
+
+Fetch the active public key for a user:
+
+```http
+GET http://localhost:8080/api/keys/2/active
+Authorization: Bearer <jwt>
+```
+
+### Message Formats
+
+Legacy plaintext messages still work:
+
+```json
+{
+  "chatId": 1,
+  "content": "Hello Bob"
+}
+```
+
+The backend now also accepts encrypted payload packages:
+
+```json
+{
+  "chatId": 1,
+  "messageFormat": "E2EE_V1",
+  "ciphertext": "base64-ciphertext",
+  "nonce": "base64-nonce",
+  "algorithm": "AES_GCM",
+  "encryptedMessageKey": "base64-wrapped-key",
+  "signature": "base64-signature",
+  "keyVersion": 1
+}
+```
+
+For `E2EE_V1`, the backend validates that:
+
+- `ciphertext` is present
+- `nonce` is present
+- `algorithm` is present
+- `encryptedMessageKey` is present
+- `signature` is present
+- `keyVersion` is valid
+
+The backend stores these encrypted fields but does not decrypt them.
+
+### Current Scope
+
+Stage C1 is backend preparation only.
+
+It does **not** yet include:
+
+- browser-side key generation
+- client-side encryption/decryption
+- client-side signature verification
+- encrypted-only UI flows
+
+Those belong to the next step after C1.
 
 ## HTML Test Client
 

@@ -54,4 +54,8 @@ public class User {
     @Builder.Default
     @OneToMany(mappedBy = "sender")
     private List<Message> messages = new ArrayList<Message>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user")
+    private List<UserKey> userKeys = new ArrayList<UserKey>();
 }
