@@ -32,9 +32,9 @@ public class MessageService {
     }
 
     @Transactional
-    public MessageResponse sendMessage(SendMessageRequest request) {
+    public MessageResponse sendMessage(SendMessageRequest request, Long authenticatedUserId) {
         Chat chat = chatService.getChatEntityById(request.getChatId());
-        User sender = userService.getEntityById(request.getSenderId());
+        User sender = userService.getEntityById(authenticatedUserId);
 
         chatService.validateUserInChat(chat.getId(), sender.getId());
 
@@ -54,8 +54,9 @@ public class MessageService {
     }
 
     @Transactional(readOnly = true)
-    public List<MessageResponse> getMessagesByChatId(Long chatId) {
+    public List<MessageResponse> getMessagesByChatId(Long chatId, Long authenticatedUserId) {
         chatService.getChatEntityById(chatId);
+        chatService.validateUserInChat(chatId, authenticatedUserId);
         List<Message> messages = messageRepository.findByChatIdOrderByTimestampAsc(chatId);
         List<MessageResponse> responses = new ArrayList<MessageResponse>();
         for (Message message : messages) {

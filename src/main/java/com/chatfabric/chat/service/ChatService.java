@@ -12,6 +12,7 @@ import com.chatfabric.chat.repository.ChatParticipantRepository;
 import com.chatfabric.chat.repository.ChatRepository;
 import com.chatfabric.chat.util.EntityMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,11 +36,15 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatResponse createPrivateChat(CreateChatRequest request) {
+    public ChatResponse createPrivateChat(CreateChatRequest request, Long authenticatedUserId) {
         validateParticipants(request);
 
         Long firstUserId = request.getFirstUserId();
         Long secondUserId = request.getSecondUserId();
+
+        if (!authenticatedUserId.equals(firstUserId) && !authenticatedUserId.equals(secondUserId)) {
+            throw new AccessDeniedException("You can only create private chats that include your own user");
+        }
 
         Chat existingChat = chatRepository.findPrivateChatBetweenUsers(ChatType.PRIVATE, firstUserId, secondUserId)
                 .orElse(null);
@@ -77,7 +82,8 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChatResponse> getChatsForUser(Long userId) {
+    public List<ChatResponse> getChatsForUser(Long userId, Long authenticatedUserId) {
+        userService.validateSelfAccess(userId, authenticatedUserId);
         userService.getEntityById(userId);
         List<Chat> chats = chatRepository.findAllByParticipantUserId(userId);
         List<ChatResponse> responses = new ArrayList<ChatResponse>();
@@ -101,7 +107,7 @@ public class ChatService {
     @Transactional(readOnly = true)
     public void validateUserInChat(Long chatId, Long userId) {
         if (!chatParticipantRepository.existsByChatIdAndUserId(chatId, userId)) {
-            throw new BadRequestException("User with id=" + userId + " is not a participant in chat id=" + chatId);
+            throw new AccessDeniedException("Authenticated user is not a participant in chat id=" + chatId);
         }
     }
 

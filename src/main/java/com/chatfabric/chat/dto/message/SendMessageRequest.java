@@ -14,9 +14,6 @@ public class SendMessageRequest {
     @NotNull(message = "Chat id is required")
     private Long chatId;
 
-    @NotNull(message = "Sender id is required")
-    private Long senderId;
-
     @NotBlank(message = "Message content is required")
     @Size(max = 2000, message = "Message content must not exceed 2000 characters")
     private String content;

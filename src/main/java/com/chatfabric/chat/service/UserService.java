@@ -1,6 +1,7 @@
 package com.chatfabric.chat.service;
 
 import com.chatfabric.chat.dto.user.UserRegistrationRequest;
+import com.chatfabric.chat.dto.user.UserPresenceUpdateResponse;
 import com.chatfabric.chat.dto.user.UserResponse;
 import com.chatfabric.chat.entity.User;
 import com.chatfabric.chat.entity.UserStatus;
@@ -9,9 +10,13 @@ import com.chatfabric.chat.exception.ResourceNotFoundException;
 import com.chatfabric.chat.repository.UserRepository;
 import com.chatfabric.chat.util.EntityMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -53,6 +58,22 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public UserResponse getByIdForAuthenticatedUser(Long requestedUserId, Long authenticatedUserId) {
+        validateSelfAccess(requestedUserId, authenticatedUserId);
+        return getById(requestedUserId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAllByOrderByUsernameAsc();
+        List<UserResponse> responses = new ArrayList<UserResponse>();
+        for (User user : users) {
+            responses.add(EntityMapper.toUserResponse(user));
+        }
+        return responses;
+    }
+
+    @Transactional(readOnly = true)
     public User getEntityById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(new java.util.function.Supplier<ResourceNotFoundException>() {
@@ -79,5 +100,21 @@ public class UserService {
         onlineUserTracker.markOffline(userId);
         userRepository.save(user);
         log.info("User marked offline userId={}", userId);
+    }
+
+    @Transactional(readOnly = true)
+    public UserPresenceUpdateResponse getPresenceUpdate(Long userId) {
+        User user = getEntityById(userId);
+        return UserPresenceUpdateResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .status(user.getStatus())
+                .build();
+    }
+
+    public void validateSelfAccess(Long requestedUserId, Long authenticatedUserId) {
+        if (!requestedUserId.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("You can only access your own user profile");
+        }
     }
 }

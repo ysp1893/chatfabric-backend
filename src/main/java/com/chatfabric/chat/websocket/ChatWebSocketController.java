@@ -2,6 +2,7 @@ package com.chatfabric.chat.websocket;
 
 import com.chatfabric.chat.dto.message.MessageResponse;
 import com.chatfabric.chat.dto.message.SendMessageRequest;
+import com.chatfabric.chat.security.SecurityUserPrincipal;
 import com.chatfabric.chat.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -10,6 +11,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @Slf4j
 @Controller
@@ -25,8 +27,9 @@ public class ChatWebSocketController {
     }
 
     @MessageMapping("/chat.sendMessage")
-    public void sendMessage(@Valid @Payload SendMessageRequest request) {
-        MessageResponse response = messageService.sendMessage(request);
+    public void sendMessage(@Valid @Payload SendMessageRequest request, Principal principal) {
+        SecurityUserPrincipal securityUserPrincipal = (SecurityUserPrincipal) principal;
+        MessageResponse response = messageService.sendMessage(request, securityUserPrincipal.getId());
         String destination = "/topic/messages/" + response.getChatId();
         messagingTemplate.convertAndSend(destination, response);
         log.debug("Broadcasted message id={} to {}", response.getId(), destination);

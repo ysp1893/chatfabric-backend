@@ -1,11 +1,13 @@
 # ChatFabric Backend
 
-Production-ready Spring Boot backend for a scalable real-time chat application using Java 8, Spring MVC, Spring Data JPA, MySQL, and STOMP over WebSocket.
+Production-ready Spring Boot backend for a scalable real-time chat application using Java 8, Spring MVC, Spring Data JPA, MySQL, JWT-based authentication, and STOMP over WebSocket.
 
 ## Tech Stack
 
 - Java 8
 - Spring Boot 2.7.18
+- Spring Security
+- JWT authentication
 - Maven
 - MySQL
 - Spring Data JPA
@@ -18,42 +20,46 @@ Production-ready Spring Boot backend for a scalable real-time chat application u
 
 ```text
 com.chatfabric.chat
-├── controller
-├── service
-├── repository
-├── entity
-├── dto
-├── config
-├── websocket
-├── exception
-└── util
+|- controller
+|- service
+|- repository
+|- entity
+|- dto
+|- config
+|- websocket
+|- security
+|- exception
+\- util
 ```
 
 ## Features
 
-- User registration and user lookup
+- User registration and login
+- JWT-secured REST APIs
+- JWT-secured STOMP WebSocket connections
 - Private chat creation between two users
 - Message persistence in MySQL
 - Fetch chat messages by chat ID
-- STOMP messaging over `/ws`
-- Topic subscriptions over `/topic/messages/{chatId}`
+- Dynamic user discovery through `GET /api/users`
+- Realtime message delivery over `/topic/messages/{chatId}`
+- Realtime presence delivery over `/topic/presence`
 - In-memory online user tracking by default
 - Redis-backed presence tracking when `PRESENCE_STORE=redis`
+- Browser dashboard with auto-loaded chats, auto-create chat flow, presence indicators, and unread markers
 
 ## API Summary
 
-### User APIs
+### Public APIs
 
 - `POST /api/users/register`
+- `POST /api/auth/login`
+
+### Protected APIs
+
+- `GET /api/users`
 - `GET /api/users/{id}`
-
-### Chat APIs
-
 - `POST /api/chats`
 - `GET /api/chats/{userId}`
-
-### Message APIs
-
 - `POST /api/messages`
 - `GET /api/messages/{chatId}`
 
@@ -64,10 +70,12 @@ com.chatfabric.chat
 - Topic prefix: `/topic`
 - Send destination: `/app/chat.sendMessage`
 - Subscribe destination: `/topic/messages/{chatId}`
+- Presence destination: `/topic/presence`
+- STOMP connect header: `Authorization: Bearer <jwt>`
 
 ## Configuration
 
-The app reads database and presence configuration from environment variables.
+The app reads database, presence, and JWT configuration from environment variables.
 
 ```powershell
 $env:DB_HOST="localhost"
@@ -76,6 +84,8 @@ $env:DB_NAME="chatfabric"
 $env:DB_USERNAME="root"
 $env:DB_PASSWORD="root"
 $env:PRESENCE_STORE="in-memory"
+$env:JWT_SECRET="chatfabric-super-secret-jwt-key-change-me-2026"
+$env:JWT_EXPIRATION_SECONDS="900"
 ```
 
 Optional Redis settings:
@@ -98,20 +108,44 @@ mvn spring-boot:run
 
 By default the app starts on port `8080`.
 
-## Step-by-Step Testing
+## Step-by-Step Secure Testing
 
 The sequence below uses port `8080`. If you run the app on another port, replace `8080` consistently in both HTTP and WebSocket URLs.
 
-### 1. Create user 1
-
-Request:
+### 1. Register Alice
 
 ```http
 POST http://localhost:8080/api/users/register
 Content-Type: application/json
 ```
 
-Body:
+```json
+{
+  "username": "alice",
+  "password": "password123"
+}
+```
+
+### 2. Register Bob
+
+```http
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+```
+
+```json
+{
+  "username": "bob",
+  "password": "password123"
+}
+```
+
+### 3. Login as Alice and get a JWT
+
+```http
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+```
 
 ```json
 {
@@ -124,23 +158,20 @@ Example response:
 
 ```json
 {
-  "id": 1,
-  "username": "alice",
-  "status": "OFFLINE",
-  "createdAt": "2026-04-07T13:00:00"
+  "tokenType": "Bearer",
+  "accessToken": "<alice-jwt>",
+  "expiresInSeconds": 900,
+  "userId": 1,
+  "username": "alice"
 }
 ```
 
-### 2. Create user 2
-
-Request:
+### 4. Login as Bob and get a JWT
 
 ```http
-POST http://localhost:8080/api/users/register
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 ```
-
-Body:
 
 ```json
 {
@@ -149,16 +180,13 @@ Body:
 }
 ```
 
-### 3. Create a private chat
-
-Request:
+### 5. Create a private chat as Alice
 
 ```http
 POST http://localhost:8080/api/chats
+Authorization: Bearer <alice-jwt>
 Content-Type: application/json
 ```
-
-Body:
 
 ```json
 {
@@ -191,34 +219,31 @@ Example response:
 
 Use the returned `id` as your `chatId`.
 
-### 4. Send a message by REST
-
-Request:
+### 6. Send a message by REST as Alice
 
 ```http
 POST http://localhost:8080/api/messages
+Authorization: Bearer <alice-jwt>
 Content-Type: application/json
 ```
-
-Body:
 
 ```json
 {
   "chatId": 1,
-  "senderId": 1,
   "content": "Hello Bob"
 }
 ```
 
-### 5. Fetch stored messages
+The sender is inferred from the JWT. Do not send `senderId`.
 
-Request:
+### 7. Fetch stored messages as Alice or Bob
 
 ```http
 GET http://localhost:8080/api/messages/1
+Authorization: Bearer <alice-jwt>
 ```
 
-### 6. Test real-time messaging with the HTML client
+### 8. Open the browser dashboard
 
 Open:
 
@@ -226,54 +251,76 @@ Open:
 http://localhost:8080/chat-test.html
 ```
 
-The page auto-detects the current backend host and port and fills the WebSocket URL automatically.
+The page auto-detects the current backend host and port, lets you log in, stores the returned JWT in the page, and uses that token in the STOMP `Authorization` header automatically.
+
+### 9. Login in the browser dashboard
+
+Use one browser or tab per user.
 
 #### Alice tab
 
-- `User ID Header`: `1`
-- `Topic Destination`: `/topic/messages/1`
-- Click `Connect`
-- Click `Subscribe`
+- Username: `alice`
+- Password: `password123`
+- Click `Login`
 
-Payload:
+After login the dashboard:
 
-```json
-{
-  "chatId": 1,
-  "senderId": 1,
-  "content": "Hello Bob, this is Alice"
-}
-```
-
-Click `Send Message`.
+- loads all chats for the signed-in user
+- loads all users in the system
+- auto-connects realtime
+- subscribes to presence updates
+- updates online and offline status automatically
 
 #### Bob tab
 
 Open a second browser tab with the same page.
 
-- `User ID Header`: `2`
-- `Topic Destination`: `/topic/messages/1`
-- Click `Connect`
-- Click `Subscribe`
+- Username: `bob`
+- Password: `password123`
+- Click `Login`
 
-Payload:
+### 10. Start a chat dynamically
 
-```json
-{
-  "chatId": 1,
-  "senderId": 2,
-  "content": "Hi Alice, I got your message"
-}
-```
+Inside the dashboard:
 
-Click `Send Message`.
+1. Look at `Available Users`
+2. Click a user card
+3. If a chat already exists, it opens automatically
+4. If no chat exists, a private chat is created automatically and opened
 
-### 7. Verify the chat history
+No manual `chatId` or `userId` entry is required in the dashboard.
 
-Request:
+### 11. Send messages from the dashboard
+
+When a chat is selected:
+
+1. Type in the message box
+2. Click `Send`
+3. The message is sent through `/app/chat.sendMessage`
+4. The active conversation refreshes in realtime
+
+### 12. Verify presence updates
+
+When multiple users are logged into the dashboard:
+
+- users switching online/offline should update automatically in:
+  - `Available Users`
+  - `Chats`
+
+This is delivered through `/topic/presence`.
+
+### 13. Verify unread indicators
+
+If a message arrives for a chat that is not currently open:
+
+- the related chat card shows a `NEW <count>` badge
+- opening that chat resets the unread count
+
+### 14. Verify the chat history by REST
 
 ```http
 GET http://localhost:8080/api/messages/1
+Authorization: Bearer <bob-jwt>
 ```
 
 Expected response:
@@ -301,8 +348,28 @@ Expected response:
 ]
 ```
 
-## Notes
+## Security Notes
 
-- The backend validates that the sender belongs to the target chat.
-- User presence flips to `ONLINE` on WebSocket connect and `OFFLINE` on disconnect.
-- The HTML test client is available at `src/main/resources/static/chat-test.html`.
+- Passwords are hashed with BCrypt.
+- All chat and message endpoints now require a valid JWT.
+- The backend derives message sender identity from the authenticated token, not from the request body.
+- WebSocket presence tracking now uses the authenticated STOMP principal.
+- WebSocket presence changes are broadcast to all connected dashboards.
+- Replace the default `JWT_SECRET` in real environments.
+
+## HTML Test Client
+
+The browser test client lives at:
+
+`src/main/resources/static/chat-test.html`
+
+It is intended for local validation of:
+
+- login
+- token acquisition
+- dynamic chat loading
+- available user discovery
+- auto-create private chat flow
+- realtime message send/receive
+- realtime presence updates
+- unread indicators for inactive chats

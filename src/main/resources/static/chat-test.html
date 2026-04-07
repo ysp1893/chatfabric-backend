@@ -3,241 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatFabric STOMP Test Client</title>
+    <title>ChatFabric Chat Dashboard</title>
     <style>
-        :root {
-            --bg: #0f172a;
-            --panel: #111827;
-            --panel-alt: #1f2937;
-            --border: #334155;
-            --text: #e5e7eb;
-            --muted: #94a3b8;
-            --accent: #22c55e;
-            --accent-alt: #0ea5e9;
-            --danger: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #020617, #0f172a 45%, #111827);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 24px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 32px;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            margin-bottom: 24px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: rgba(17, 24, 39, 0.92);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            font-size: 20px;
-        }
-
-        .field {
-            margin-bottom: 14px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--panel-alt);
-            color: var(--text);
-            padding: 12px;
-            font-size: 14px;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        button {
-            border: 0;
-            border-radius: 10px;
-            padding: 11px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-        }
-
-        button.primary {
-            background: var(--accent-alt);
-        }
-
-        button.success {
-            background: var(--accent);
-        }
-
-        button.danger {
-            background: var(--danger);
-        }
-
-        button.secondary {
-            background: #475569;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 700;
-            background: #3f3f46;
-            color: white;
-        }
-
-        .status.connected {
-            background: var(--accent);
-        }
-
-        .status.disconnected {
-            background: var(--danger);
-        }
-
-        pre {
-            background: #020617;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px;
-            min-height: 360px;
-            overflow: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        .hint {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 10px;
-        }
+        :root{--bg:#071120;--panel:#101a2d;--panel2:#18243a;--border:#304462;--text:#eef4ff;--muted:#91a6c5;--accent:#0ea5e9;--ok:#22c55e;--danger:#ef4444}
+        *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#020817,#0b1730 55%,#071120);color:var(--text);padding:24px}
+        .wrap{max-width:1400px;margin:0 auto}.hero{margin-bottom:20px} h1{margin:0 0 8px;font-size:38px}.sub{color:var(--muted);max-width:850px;line-height:1.6}
+        .card{background:rgba(16,26,45,.95);border:1px solid var(--border);border-radius:18px;box-shadow:0 22px 48px rgba(0,0,0,.25);padding:20px}
+        .hidden{display:none}.field{margin-bottom:14px} label{display:block;color:var(--muted);font-size:14px;margin-bottom:6px}
+        input,textarea{width:100%;border:1px solid var(--border);border-radius:12px;background:var(--panel2);color:var(--text);padding:12px 14px;font-size:14px}
+        textarea{resize:vertical;min-height:88px}.row{display:flex;gap:10px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:320px 320px minmax(0,1fr);gap:18px;align-items:start}
+        button{border:0;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:700;color:#fff;cursor:pointer}.b1{background:var(--accent)}.b2{background:#475569}.b3{background:var(--ok)}.b4{background:var(--danger)}
+        .pill{display:inline-block;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;background:#334155}.pill.on{background:rgba(34,197,94,.2);color:#86efac}
+        .head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}.head h2{margin:0;font-size:20px}
+        .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}.stat{background:#0d1729;border:1px solid var(--border);border-radius:14px;padding:14px}
+        .stat .v{font-size:24px;font-weight:800}.stat .l{font-size:12px;color:var(--muted);margin-top:4px}
+        .list{display:flex;flex-direction:column;gap:10px;max-height:560px;overflow:auto}.item{border:1px solid var(--border);background:#0f1b2f;border-radius:16px;padding:14px;cursor:pointer}
+        .item.active{border-color:var(--accent);background:rgba(14,165,233,.12)}.item .t{font-size:15px;font-weight:700;margin-bottom:6px}.item .s{font-size:12px;color:var(--muted);line-height:1.45}
+        .tag{display:inline-block;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;margin-top:10px}.tag.on{background:rgba(34,197,94,.18);color:#86efac}.tag.off{background:rgba(148,163,184,.18);color:#cbd5e1}
+        .chat{min-height:760px;display:flex;flex-direction:column}.meta{font-size:13px;color:var(--muted);line-height:1.5}.msgs{flex:1;min-height:420px;max-height:540px;overflow:auto;padding:16px;border-radius:18px;background:#091222;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+        .msg{max-width:78%;padding:12px 14px;border-radius:16px;background:#12203a;border:1px solid rgba(79,107,149,.35)}.msg.me{align-self:flex-end;background:rgba(14,165,233,.18);border-color:rgba(14,165,233,.45)}
+        .ma{font-size:12px;font-weight:700;color:#9ddcff;margin-bottom:6px}.mc{white-space:pre-wrap;line-height:1.55}.mt{font-size:11px;color:var(--muted);margin-top:8px;text-align:right}
+        .composer{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:16px}.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:rgba(15,23,42,.45)}
+        pre{background:#020617;border:1px solid var(--border);border-radius:14px;padding:14px;min-height:180px;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:0}
+        .hint{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
+        @media (max-width:1100px){.grid{grid-template-columns:1fr}.chat{min-height:auto}.msgs{max-height:420px}}
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>ChatFabric STOMP Test Client</h1>
-    <div class="subtitle">Connect to the chat backend, subscribe to a topic, and send messages over STOMP.</div>
+<div class="wrap">
+    <div class="hero">
+        <h1>ChatFabric Chat Dashboard</h1>
+        <div class="sub">Log in first, then the page dynamically loads your chats and all available users. Click a user to open or auto-create a private chat, and send messages without entering any chat ID or user ID manually.</div>
+    </div>
 
-    <div class="grid">
+    <div class="card">
+        <div class="field">
+            <label for="apiBaseUrl">REST Base URL</label>
+            <input id="apiBaseUrl" type="text">
+        </div>
+        <div class="field">
+            <label for="loginUsername">Username</label>
+            <input id="loginUsername" type="text" value="alice">
+        </div>
+        <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" value="password123">
+        </div>
+        <div class="field">
+            <label for="authToken">JWT Access Token</label>
+            <textarea id="authToken" readonly></textarea>
+        </div>
+        <div class="row">
+            <button id="loginButton" class="b3" type="button">Login</button>
+            <button id="logoutButton" class="b4 hidden" type="button">Logout</button>
+        </div>
+        <div class="hint">After login, the dashboard unlocks and opens the realtime connection using this JWT token.</div>
+    </div>
+
+    <div id="dashboard" class="grid hidden" style="margin-top:20px;">
         <div class="card">
-            <h2>Connection</h2>
-
-            <div class="field">
-                <label for="brokerUrl">WebSocket URL</label>
-                <input id="brokerUrl" type="text" value="">
+            <div class="head">
+                <h2>Your Space</h2>
+                <span id="wsStatus" class="pill">WS OFFLINE</span>
             </div>
-
-            <div class="field">
-                <label for="userId">User ID Header</label>
-                <input id="userId" type="number" value="1" min="1">
+            <div class="stats">
+                <div class="stat"><div id="meName" class="v">-</div><div class="l">Signed In User</div></div>
+                <div class="stat"><div id="chatCount" class="v">0</div><div class="l">Chats Available</div></div>
             </div>
-
-            <div class="field">
-                <label>Connection Status</label>
-                <span id="connectionStatus" class="status disconnected">DISCONNECTED</span>
+            <div class="row" style="margin-bottom:14px;">
+                <button id="connectButton" class="b1" type="button">Connect Realtime</button>
+                <button id="disconnectButton" class="b2" type="button">Disconnect</button>
             </div>
-
-            <div class="actions">
-                <button id="connectButton" class="primary" type="button">Connect</button>
-                <button id="disconnectButton" class="danger" type="button">Disconnect</button>
+            <div class="head">
+                <h2>Chats</h2>
+                <button id="refreshChatsButton" class="b2" type="button">Refresh</button>
             </div>
-
-            <div class="hint">The app sends the <code>userId</code> header during STOMP connect so presence tracking can work.</div>
+            <div id="chatList" class="list"></div>
         </div>
 
         <div class="card">
-            <h2>Subscription</h2>
-
-            <div class="field">
-                <label for="topicDestination">Topic Destination</label>
-                <input id="topicDestination" type="text" value="/topic/messages/1">
+            <div class="head">
+                <h2>Available Users</h2>
+                <button id="refreshUsersButton" class="b2" type="button">Refresh</button>
             </div>
-
-            <div class="actions">
-                <button id="subscribeButton" class="success" type="button">Subscribe</button>
-                <button id="unsubscribeButton" class="secondary" type="button">Unsubscribe</button>
-            </div>
-
-            <div class="hint">Use the chat ID you created from the REST API, for example <code>/topic/messages/1</code>.</div>
+            <div class="hint" style="margin-top:0;margin-bottom:12px;">Click a user to open an existing private chat or create one automatically.</div>
+            <div id="userList" class="list"></div>
         </div>
 
-        <div class="card">
-            <h2>Send Message</h2>
-
-            <div class="field">
-                <label for="sendDestination">Send Destination</label>
-                <input id="sendDestination" type="text" value="/app/chat.sendMessage">
+        <div class="card chat">
+            <div class="head">
+                <div>
+                    <h2 id="chatTitle" style="margin:0 0 6px;">No Chat Selected</h2>
+                    <div id="chatMeta" class="meta">Choose a user or existing chat to start messaging.</div>
+                </div>
+                <button id="refreshMessagesButton" class="b2 hidden" type="button">Refresh Messages</button>
             </div>
-
-            <div class="field">
-                <label for="messagePayload">JSON Payload</label>
-                <textarea id="messagePayload">{
-  "chatId": 1,
-  "senderId": 1,
-  "content": "Hello from browser STOMP client"
-}</textarea>
+            <div id="messagesPanel" class="msgs">
+                <div class="empty">No active chat yet. Select a user from the Available Users list or open an existing chat.</div>
             </div>
-
-            <div class="actions">
-                <button id="sendButton" class="primary" type="button">Send Message</button>
+            <div id="composer" class="composer hidden">
+                <textarea id="messageDraft" placeholder="Write your message here..."></textarea>
+                <button id="sendButton" class="b1" type="button">Send</button>
             </div>
         </div>
     </div>
 
-    <div class="card" style="margin-top: 20px;">
-        <h2>Event Log</h2>
-        <div class="actions" style="margin-top: 0; margin-bottom: 14px;">
-            <button id="clearLogButton" class="secondary" type="button">Clear Log</button>
+    <div class="card" style="margin-top:20px;">
+        <div class="head">
+            <h2>Event Log</h2>
+            <button id="clearLogButton" class="b2" type="button">Clear Log</button>
         </div>
         <pre id="eventLog"></pre>
     </div>
@@ -246,167 +120,397 @@
 <script src="https://unpkg.com/@stomp/stompjs@7.1.1/bundles/stomp.umd.min.js"></script>
 <script>
     (function () {
-        var client = null;
-        var subscription = null;
-
-        var brokerUrlInput = document.getElementById("brokerUrl");
-        var userIdInput = document.getElementById("userId");
-        var topicDestinationInput = document.getElementById("topicDestination");
-        var sendDestinationInput = document.getElementById("sendDestination");
-        var messagePayloadInput = document.getElementById("messagePayload");
-        var eventLog = document.getElementById("eventLog");
-        var connectionStatus = document.getElementById("connectionStatus");
+        var state = { token: "", currentUser: null, users: [], chats: [], selectedChat: null, client: null, subscription: null, presenceSubscription: null, chatSubscriptions: {}, unreadCounts: {} };
+        var el = {
+            apiBaseUrl: document.getElementById("apiBaseUrl"),
+            loginUsername: document.getElementById("loginUsername"),
+            loginPassword: document.getElementById("loginPassword"),
+            authToken: document.getElementById("authToken"),
+            loginButton: document.getElementById("loginButton"),
+            logoutButton: document.getElementById("logoutButton"),
+            dashboard: document.getElementById("dashboard"),
+            connectButton: document.getElementById("connectButton"),
+            disconnectButton: document.getElementById("disconnectButton"),
+            refreshChatsButton: document.getElementById("refreshChatsButton"),
+            refreshUsersButton: document.getElementById("refreshUsersButton"),
+            refreshMessagesButton: document.getElementById("refreshMessagesButton"),
+            clearLogButton: document.getElementById("clearLogButton"),
+            sendButton: document.getElementById("sendButton"),
+            wsStatus: document.getElementById("wsStatus"),
+            meName: document.getElementById("meName"),
+            chatCount: document.getElementById("chatCount"),
+            chatList: document.getElementById("chatList"),
+            userList: document.getElementById("userList"),
+            chatTitle: document.getElementById("chatTitle"),
+            chatMeta: document.getElementById("chatMeta"),
+            messagesPanel: document.getElementById("messagesPanel"),
+            composer: document.getElementById("composer"),
+            messageDraft: document.getElementById("messageDraft"),
+            eventLog: document.getElementById("eventLog")
+        };
 
         function log(message, data) {
-            var timestamp = new Date().toLocaleTimeString();
-            var line = "[" + timestamp + "] " + message;
+            var line = "[" + new Date().toLocaleTimeString() + "] " + message;
             if (typeof data !== "undefined") {
-                if (typeof data === "string") {
-                    line += "\n" + data;
-                } else {
-                    line += "\n" + JSON.stringify(data, null, 2);
+                line += "\n" + (typeof data === "string" ? data : JSON.stringify(data, null, 2));
+            }
+            el.eventLog.textContent = line + "\n\n" + el.eventLog.textContent;
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        function formatDate(value) {
+            var date = new Date(value);
+            return isNaN(date.getTime()) ? String(value || "-") : date.toLocaleString();
+        }
+
+        function apiBase() { return el.apiBaseUrl.value.trim(); }
+        function brokerUrl() { return (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/ws"; }
+        function authHeaders() { return { "Authorization": "Bearer " + state.token, "Content-Type": "application/json" }; }
+
+        async function request(path, options) {
+            var cfg = options || {};
+            var response = await fetch(apiBase() + path, { method: cfg.method || "GET", headers: cfg.headers || {}, body: cfg.body });
+            var contentType = response.headers.get("content-type") || "";
+            var body = contentType.indexOf("application/json") >= 0 ? await response.json() : await response.text();
+            if (!response.ok) {
+                throw new Error((body && body.message) || response.statusText || "Request failed");
+            }
+            return body;
+        }
+
+        function setAuthenticated(value) {
+            el.dashboard.classList.toggle("hidden", !value);
+            el.logoutButton.classList.toggle("hidden", !value);
+        }
+
+        function setWsConnected(value) {
+            el.wsStatus.textContent = value ? "WS CONNECTED" : "WS OFFLINE";
+            el.wsStatus.className = value ? "pill on" : "pill";
+        }
+
+        function findOtherParticipant(chat) {
+            var i;
+            for (i = 0; i < chat.participants.length; i += 1) {
+                if (chat.participants[i].userId !== state.currentUser.userId) {
+                    return chat.participants[i];
                 }
             }
-            eventLog.textContent = line + "\n\n" + eventLog.textContent;
+            return chat.participants[0] || null;
         }
 
-        function setConnectedState(isConnected) {
-            connectionStatus.textContent = isConnected ? "CONNECTED" : "DISCONNECTED";
-            connectionStatus.className = "status " + (isConnected ? "connected" : "disconnected");
-        }
-
-        function resolveDefaultBrokerUrl() {
-            var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-            return protocol + window.location.host + "/ws";
-        }
-
-        function ensureClient() {
-            if (!client || !client.connected) {
-                throw new Error("STOMP client is not connected");
-            }
-        }
-
-        document.getElementById("connectButton").addEventListener("click", function () {
-            if (client && client.connected) {
-                log("Already connected");
-                return;
-            }
-
-            client = new StompJs.Client({
-                brokerURL: brokerUrlInput.value.trim(),
-                connectHeaders: {
-                    userId: String(userIdInput.value).trim()
-                },
-                reconnectDelay: 0,
-                debug: function (message) {
-                    log("STOMP debug", message);
-                },
-                onConnect: function (frame) {
-                    setConnectedState(true);
-                    log("Connected", frame.headers);
-                },
-                onStompError: function (frame) {
-                    log("Broker error", {
-                        headers: frame.headers,
-                        body: frame.body
-                    });
-                },
-                onWebSocketError: function (event) {
-                    log("WebSocket error", event.type || event);
-                },
-                onWebSocketClose: function () {
-                    setConnectedState(false);
-                    log("WebSocket connection closed");
-                }
-            });
-
-            client.activate();
-            log("Connecting", {
-                brokerURL: brokerUrlInput.value.trim(),
-                userId: String(userIdInput.value).trim()
-            });
-        });
-
-        document.getElementById("disconnectButton").addEventListener("click", function () {
-            if (!client) {
-                log("No client to disconnect");
-                return;
-            }
-
-            if (subscription) {
-                subscription.unsubscribe();
-                subscription = null;
-            }
-
-            client.deactivate();
-            client = null;
-            setConnectedState(false);
-            log("Disconnected by user");
-        });
-
-        document.getElementById("subscribeButton").addEventListener("click", function () {
-            try {
-                ensureClient();
-                if (subscription) {
-                    subscription.unsubscribe();
-                }
-
-                var destination = topicDestinationInput.value.trim();
-                subscription = client.subscribe(destination, function (message) {
-                    var parsedBody = message.body;
-                    try {
-                        parsedBody = JSON.parse(message.body);
-                    } catch (ignored) {
+        function findChatByUserId(userId) {
+            var i, j, chat;
+            for (i = 0; i < state.chats.length; i += 1) {
+                chat = state.chats[i];
+                for (j = 0; j < chat.participants.length; j += 1) {
+                    if (chat.participants[j].userId === userId) {
+                        return chat;
                     }
-                    log("Message received on " + destination, parsedBody);
-                });
-
-                log("Subscribed", destination);
-            } catch (error) {
-                log("Subscribe failed", error.message);
+                }
             }
-        });
+            return null;
+        }
 
-        document.getElementById("unsubscribeButton").addEventListener("click", function () {
-            if (!subscription) {
-                log("No active subscription");
+        function unreadCount(chatId) {
+            return state.unreadCounts[chatId] || 0;
+        }
+
+        function renderChats() {
+            el.chatCount.textContent = String(state.chats.length);
+            el.chatList.innerHTML = "";
+            if (!state.chats.length) {
+                el.chatList.innerHTML = '<div class="empty">No chats yet. Pick a user from the Available Users list to start one.</div>';
                 return;
             }
+            state.chats.forEach(function (chat) {
+                var other = findOtherParticipant(chat);
+                var unread = unreadCount(chat.id);
+                var item = document.createElement("div");
+                item.className = "item" + (state.selectedChat && state.selectedChat.id === chat.id ? " active" : "");
+                item.innerHTML =
+                    '<div class="t">' + escapeHtml(other ? other.username : "Chat #" + chat.id) + '</div>' +
+                    '<div class="s">Chat ID: ' + chat.id + '<br>Created: ' + escapeHtml(formatDate(chat.createdAt)) + '</div>' +
+                    '<span class="tag ' + ((other && other.status === "ONLINE") ? "on" : "off") + '">' + escapeHtml(other ? other.status : "UNKNOWN") + '</span>' +
+                    (unread > 0 ? ' <span class="tag on">NEW ' + unread + '</span>' : '');
+                item.addEventListener("click", function () { selectChat(chat); });
+                el.chatList.appendChild(item);
+            });
+        }
 
-            subscription.unsubscribe();
-            subscription = null;
-            log("Unsubscribed");
-        });
+        function renderUsers() {
+            el.userList.innerHTML = "";
+            var available = state.users.filter(function (user) { return user.id !== state.currentUser.userId; });
+            if (!available.length) {
+                el.userList.innerHTML = '<div class="empty">No other users are available yet. Register more users first.</div>';
+                return;
+            }
+            available.forEach(function (user) {
+                var existingChat = findChatByUserId(user.id);
+                var item = document.createElement("div");
+                item.className = "item";
+                item.innerHTML =
+                    '<div class="t">' + escapeHtml(user.username) + '</div>' +
+                    '<div class="s">User ID: ' + user.id + '<br>' + (existingChat ? "Open existing chat" : "Create chat") + '</div>' +
+                    '<span class="tag ' + (user.status === "ONLINE" ? "on" : "off") + '">' + escapeHtml(user.status) + '</span>';
+                item.addEventListener("click", function () { openOrCreateChat(user); });
+                el.userList.appendChild(item);
+            });
+        }
 
-        document.getElementById("sendButton").addEventListener("click", function () {
-            try {
-                ensureClient();
-                var destination = sendDestinationInput.value.trim();
-                var payload = messagePayloadInput.value.trim();
+        function renderMessages(messages) {
+            el.messagesPanel.innerHTML = "";
+            if (!messages || !messages.length) {
+                el.messagesPanel.innerHTML = '<div class="empty">No messages yet. Start the conversation below.</div>';
+                return;
+            }
+            messages.forEach(function (message) {
+                var mine = message.senderId === state.currentUser.userId;
+                var node = document.createElement("div");
+                node.className = "msg" + (mine ? " me" : "");
+                node.innerHTML =
+                    '<div class="ma">' + escapeHtml(message.senderUsername) + '</div>' +
+                    '<div class="mc">' + escapeHtml(message.content) + '</div>' +
+                    '<div class="mt">' + escapeHtml(formatDate(message.timestamp)) + '</div>';
+                el.messagesPanel.appendChild(node);
+            });
+            el.messagesPanel.scrollTop = el.messagesPanel.scrollHeight;
+        }
 
-                JSON.parse(payload);
+        function renderSelectedChat() {
+            if (!state.selectedChat) {
+                el.chatTitle.textContent = "No Chat Selected";
+                el.chatMeta.textContent = "Choose a user or existing chat to start messaging.";
+                el.refreshMessagesButton.classList.add("hidden");
+                el.composer.classList.add("hidden");
+                renderMessages([]);
+                return;
+            }
+            var other = findOtherParticipant(state.selectedChat);
+            el.chatTitle.textContent = other ? other.username : "Chat #" + state.selectedChat.id;
+            el.chatMeta.textContent = "Chat ID " + state.selectedChat.id + " • Participants: " + state.selectedChat.participants.map(function (p) { return p.username + " (" + p.status + ")"; }).join(", ");
+            el.refreshMessagesButton.classList.remove("hidden");
+            el.composer.classList.remove("hidden");
+        }
 
-                client.publish({
-                    destination: destination,
-                    body: payload,
-                    headers: {
-                        "content-type": "application/json"
+        async function fetchUsers() {
+            state.users = await request("/api/users", { headers: { "Authorization": "Bearer " + state.token } });
+            renderUsers();
+        }
+
+        async function fetchChats() {
+            state.chats = await request("/api/chats/" + state.currentUser.userId, { headers: { "Authorization": "Bearer " + state.token } });
+            renderChats();
+            renderUsers();
+            subscribeAllChatStreams();
+        }
+
+        async function fetchMessages() {
+            if (!state.selectedChat) { return; }
+            renderMessages(await request("/api/messages/" + state.selectedChat.id, { headers: { "Authorization": "Bearer " + state.token } }));
+        }
+
+        function unsubscribeSelectedChat() {
+            if (state.subscription) {
+                state.subscription.unsubscribe();
+                state.subscription = null;
+            }
+        }
+
+        function unsubscribeChatStreams() {
+            Object.keys(state.chatSubscriptions).forEach(function (chatId) {
+                state.chatSubscriptions[chatId].unsubscribe();
+            });
+            state.chatSubscriptions = {};
+        }
+
+        function unsubscribePresence() {
+            if (state.presenceSubscription) {
+                state.presenceSubscription.unsubscribe();
+                state.presenceSubscription = null;
+            }
+        }
+
+        function applyPresenceUpdate(update) {
+            var i;
+            for (i = 0; i < state.users.length; i += 1) {
+                if (state.users[i].id === update.userId) {
+                    state.users[i].status = update.status;
+                }
+            }
+            for (i = 0; i < state.chats.length; i += 1) {
+                state.chats[i].participants.forEach(function (participant) {
+                    if (participant.userId === update.userId) {
+                        participant.status = update.status;
                     }
                 });
+            }
+            renderUsers();
+            renderChats();
+            if (state.selectedChat) {
+                renderSelectedChat();
+            }
+        }
 
-                log("Message sent to " + destination, JSON.parse(payload));
-            } catch (error) {
-                log("Send failed", error.message);
+        function subscribeSelectedChat() {
+            unsubscribeSelectedChat();
+            if (!state.client || !state.client.connected || !state.selectedChat) { return; }
+            var destination = "/topic/messages/" + state.selectedChat.id;
+            state.subscription = state.client.subscribe(destination, function (message) {
+                var body = message.body;
+                try { body = JSON.parse(message.body); } catch (ignored) {}
+                log("Realtime message received", body);
+                fetchMessages().catch(function (error) { log("Fetch messages failed", error.message); });
+            });
+            log("Subscribed to chat topic", destination);
+        }
+
+        function subscribeAllChatStreams() {
+            unsubscribeChatStreams();
+            if (!state.client || !state.client.connected) { return; }
+            state.chats.forEach(function (chat) {
+                var destination = "/topic/messages/" + chat.id;
+                state.chatSubscriptions[chat.id] = state.client.subscribe(destination, function (message) {
+                    var body = message.body;
+                    try { body = JSON.parse(message.body); } catch (ignored) {}
+                    log("Realtime message received", body);
+                    if (!state.selectedChat || state.selectedChat.id !== chat.id) {
+                        state.unreadCounts[chat.id] = unreadCount(chat.id) + 1;
+                        renderChats();
+                    } else {
+                        fetchMessages().catch(function (error) { log("Fetch messages failed", error.message); });
+                    }
+                });
+            });
+            log("Subscribed to all chat streams", Object.keys(state.chatSubscriptions));
+        }
+
+        function subscribePresence() {
+            unsubscribePresence();
+            if (!state.client || !state.client.connected) { return; }
+            state.presenceSubscription = state.client.subscribe("/topic/presence", function (message) {
+                var body = message.body;
+                try { body = JSON.parse(message.body); } catch (ignored) {}
+                log("Presence update received", body);
+                applyPresenceUpdate(body);
+            });
+            log("Subscribed to presence updates", "/topic/presence");
+        }
+
+        async function selectChat(chat) {
+            state.selectedChat = chat;
+            state.unreadCounts[chat.id] = 0;
+            renderChats();
+            renderSelectedChat();
+            await fetchMessages();
+        }
+
+        async function openOrCreateChat(user) {
+            var chat = findChatByUserId(user.id);
+            if (!chat) {
+                chat = await request("/api/chats", {
+                    method: "POST",
+                    headers: authHeaders(),
+                    body: JSON.stringify({ firstUserId: state.currentUser.userId, secondUserId: user.id })
+                });
+                log("Chat opened or created", chat);
+                await fetchChats();
+                chat = findChatByUserId(user.id) || chat;
+            }
+            await selectChat(chat);
+        }
+
+        async function connectRealtime() {
+            if (state.client && state.client.connected) { return; }
+            state.client = new StompJs.Client({
+                brokerURL: brokerUrl(),
+                connectHeaders: { Authorization: "Bearer " + state.token },
+                reconnectDelay: 3000,
+                debug: function (message) { log("STOMP debug", message); },
+                onConnect: function () { setWsConnected(true); log("Realtime connected"); subscribePresence(); subscribeAllChatStreams(); },
+                onStompError: function (frame) { log("Broker error", { headers: frame.headers, body: frame.body }); },
+                onWebSocketClose: function () { setWsConnected(false); log("Realtime disconnected"); },
+                onWebSocketError: function (event) { log("WebSocket error", event.type || event); }
+            });
+            state.client.activate();
+        }
+
+        function disconnectRealtime() {
+            unsubscribeSelectedChat();
+            unsubscribePresence();
+            unsubscribeChatStreams();
+            if (state.client) {
+                state.client.deactivate();
+                state.client = null;
+            }
+            setWsConnected(false);
+        }
+
+        async function login() {
+            var body = await request("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: el.loginUsername.value.trim(), password: el.loginPassword.value })
+            });
+            state.token = body.accessToken;
+            state.currentUser = { userId: body.userId, username: body.username };
+            el.authToken.value = body.accessToken;
+            el.meName.textContent = body.username;
+            setAuthenticated(true);
+            renderSelectedChat();
+            log("Login successful", body);
+            await fetchUsers();
+            await fetchChats();
+            await connectRealtime();
+        }
+
+        function logout() {
+            disconnectRealtime();
+            state = { token: "", currentUser: null, users: [], chats: [], selectedChat: null, client: null, subscription: null, presenceSubscription: null, chatSubscriptions: {}, unreadCounts: {} };
+            el.authToken.value = "";
+            el.meName.textContent = "-";
+            el.chatCount.textContent = "0";
+            el.chatList.innerHTML = "";
+            el.userList.innerHTML = "";
+            renderSelectedChat();
+            setAuthenticated(false);
+            log("Logged out");
+        }
+
+        async function sendMessage() {
+            if (!state.selectedChat) { throw new Error("Select a chat first"); }
+            if (!state.client || !state.client.connected) { throw new Error("Realtime connection is not active"); }
+            var content = el.messageDraft.value.trim();
+            if (!content) { throw new Error("Message cannot be empty"); }
+            var payload = { chatId: state.selectedChat.id, content: content };
+            state.client.publish({ destination: "/app/chat.sendMessage", body: JSON.stringify(payload), headers: { "content-type": "application/json" } });
+            el.messageDraft.value = "";
+            log("Message sent", payload);
+        }
+
+        el.loginButton.addEventListener("click", function () { login().catch(function (error) { log("Login failed", error.message); }); });
+        el.logoutButton.addEventListener("click", logout);
+        el.connectButton.addEventListener("click", function () { connectRealtime().catch(function (error) { log("Realtime connect failed", error.message); }); });
+        el.disconnectButton.addEventListener("click", disconnectRealtime);
+        el.refreshChatsButton.addEventListener("click", function () { fetchChats().catch(function (error) { log("Refresh chats failed", error.message); }); });
+        el.refreshUsersButton.addEventListener("click", function () { fetchUsers().catch(function (error) { log("Refresh users failed", error.message); }); });
+        el.refreshMessagesButton.addEventListener("click", function () { fetchMessages().catch(function (error) { log("Refresh messages failed", error.message); }); });
+        el.sendButton.addEventListener("click", function () { sendMessage().catch(function (error) { log("Send failed", error.message); }); });
+        el.clearLogButton.addEventListener("click", function () { el.eventLog.textContent = ""; });
+        el.messageDraft.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage().catch(function (error) { log("Send failed", error.message); });
             }
         });
 
-        document.getElementById("clearLogButton").addEventListener("click", function () {
-            eventLog.textContent = "";
-        });
-
-        brokerUrlInput.value = resolveDefaultBrokerUrl();
-        setConnectedState(false);
-        log("Ready. Connect, subscribe, then send a message.");
+        el.apiBaseUrl.value = window.location.origin;
+        setAuthenticated(false);
+        setWsConnected(false);
+        renderSelectedChat();
+        log("Ready. Login to load your chats, available users, and live messaging.");
     }());
 </script>
 </body>

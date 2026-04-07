@@ -2,8 +2,10 @@ package com.chatfabric.chat.controller;
 
 import com.chatfabric.chat.dto.chat.ChatResponse;
 import com.chatfabric.chat.dto.chat.CreateChatRequest;
+import com.chatfabric.chat.security.SecurityUserPrincipal;
 import com.chatfabric.chat.service.ChatService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,12 +31,14 @@ public class ChatController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ChatResponse createPrivateChat(@Valid @RequestBody CreateChatRequest request) {
-        return chatService.createPrivateChat(request);
+    public ChatResponse createPrivateChat(@Valid @RequestBody CreateChatRequest request,
+                                          @AuthenticationPrincipal SecurityUserPrincipal principal) {
+        return chatService.createPrivateChat(request, principal.getId());
     }
 
     @GetMapping("/{userId}")
-    public List<ChatResponse> getChatsForUser(@PathVariable Long userId) {
-        return chatService.getChatsForUser(userId);
+    public List<ChatResponse> getChatsForUser(@PathVariable Long userId,
+                                              @AuthenticationPrincipal SecurityUserPrincipal principal) {
+        return chatService.getChatsForUser(userId, principal.getId());
     }
 }
