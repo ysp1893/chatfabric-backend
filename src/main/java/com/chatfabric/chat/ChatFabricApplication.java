@@ -1,9 +1,12 @@
 package com.chatfabric.chat;
 
+import com.chatfabric.chat.config.properties.SecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(SecurityProperties.class)
 public class ChatFabricApplication {
 
     public static void main(String[] args) {

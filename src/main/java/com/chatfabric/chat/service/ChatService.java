@@ -26,13 +26,16 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserService userService;
+    private final AuditService auditService;
 
     public ChatService(ChatRepository chatRepository,
                        ChatParticipantRepository chatParticipantRepository,
-                       UserService userService) {
+                       UserService userService,
+                       AuditService auditService) {
         this.chatRepository = chatRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.userService = userService;
+        this.auditService = auditService;
     }
 
     @Transactional
@@ -51,6 +54,7 @@ public class ChatService {
 
         if (existingChat != null) {
             log.info("Private chat already exists for users {} and {}", firstUserId, secondUserId);
+            auditService.logChatAccess(authenticatedUserId, existingChat.getId(), "open_existing_private_chat");
             return EntityMapper.toChatResponse(existingChat);
         }
 
@@ -78,6 +82,7 @@ public class ChatService {
 
         Chat savedChat = chatRepository.save(chat);
         log.info("Created private chat id={} between users {} and {}", savedChat.getId(), firstUserId, secondUserId);
+        auditService.logChatAccess(authenticatedUserId, savedChat.getId(), "create_private_chat");
         return EntityMapper.toChatResponse(savedChat);
     }
 
@@ -90,6 +95,7 @@ public class ChatService {
         for (Chat chat : chats) {
             responses.add(EntityMapper.toChatResponse(chat));
         }
+        auditService.logChatAccess(authenticatedUserId, null, "list_user_chats");
         return responses;
     }
 

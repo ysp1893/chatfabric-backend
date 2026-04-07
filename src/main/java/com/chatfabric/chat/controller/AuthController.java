@@ -4,6 +4,7 @@ import com.chatfabric.chat.dto.auth.AuthResponse;
 import com.chatfabric.chat.dto.auth.LoginRequest;
 import com.chatfabric.chat.security.JwtTokenProvider;
 import com.chatfabric.chat.security.SecurityUserPrincipal;
+import com.chatfabric.chat.service.AuditService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,11 +27,14 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuditService auditService;
 
     public AuthController(AuthenticationManager authenticationManager,
-                          JwtTokenProvider jwtTokenProvider) {
+                          JwtTokenProvider jwtTokenProvider,
+                          AuditService auditService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.auditService = auditService;
     }
 
     @PostMapping("/login")
@@ -46,6 +50,7 @@ public class AuthController {
 
             SecurityUserPrincipal principal = (SecurityUserPrincipal) authentication.getPrincipal();
             String token = jwtTokenProvider.generateToken(authentication);
+            auditService.logAuthenticationSuccess(principal.getId(), principal.getUsername());
 
             return AuthResponse.builder()
                     .tokenType("Bearer")
@@ -55,6 +60,7 @@ public class AuthController {
                     .username(principal.getUsername())
                     .build();
         } catch (AuthenticationException exception) {
+            auditService.logAuthenticationFailure(request.getUsername().trim());
             throw new BadCredentialsException("Invalid username or password", exception);
         }
     }

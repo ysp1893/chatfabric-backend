@@ -22,17 +22,24 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatService chatService;
     private final UserService userService;
+    private final AuditService auditService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatService chatService,
-                          UserService userService) {
+                          UserService userService,
+                          AuditService auditService) {
         this.messageRepository = messageRepository;
         this.chatService = chatService;
         this.userService = userService;
+        this.auditService = auditService;
     }
 
     @Transactional
     public MessageResponse sendMessage(SendMessageRequest request, Long authenticatedUserId) {
+        String content = request.getContent() == null ? "" : request.getContent().trim();
+        if (content.isEmpty()) {
+            throw new com.chatfabric.chat.exception.BadRequestException("Message content must not be blank");
+        }
         Chat chat = chatService.getChatEntityById(request.getChatId());
         User sender = userService.getEntityById(authenticatedUserId);
 
@@ -41,7 +48,7 @@ public class MessageService {
         Message message = Message.builder()
                 .chat(chat)
                 .sender(sender)
-                .content(request.getContent().trim())
+                .content(content)
                 .status(MessageStatus.SENT)
                 .build();
 
@@ -50,6 +57,7 @@ public class MessageService {
                 savedMessage.getId(),
                 savedMessage.getChat().getId(),
                 savedMessage.getSender().getId());
+        auditService.logMessageSent(authenticatedUserId, savedMessage.getChat().getId(), savedMessage.getId());
         return EntityMapper.toMessageResponse(savedMessage);
     }
 

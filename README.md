@@ -46,6 +46,11 @@ com.chatfabric.chat
 - In-memory online user tracking by default
 - Redis-backed presence tracking when `PRESENCE_STORE=redis`
 - Browser dashboard with auto-loaded chats, auto-create chat flow, presence indicators, and unread markers
+- Configurable CORS origin allow-list
+- Configurable HTTPS-only enforcement for production deployment
+- In-memory per-minute API rate limiting
+- Request logging and audit event logging
+- Stronger username and payload validation
 
 ## API Summary
 
@@ -86,6 +91,9 @@ $env:DB_PASSWORD="root"
 $env:PRESENCE_STORE="in-memory"
 $env:JWT_SECRET="chatfabric-super-secret-jwt-key-change-me-2026"
 $env:JWT_EXPIRATION_SECONDS="900"
+$env:REQUIRE_SSL="false"
+$env:RATE_LIMIT_ENABLED="true"
+$env:RATE_LIMIT_REQUESTS_PER_MINUTE="120"
 ```
 
 Optional Redis settings:
@@ -95,6 +103,35 @@ $env:REDIS_HOST="localhost"
 $env:REDIS_PORT="6379"
 $env:PRESENCE_STORE="redis"
 ```
+
+Optional CORS origin allow-list overrides:
+
+```powershell
+$env:ALLOWED_ORIGIN_1="https://your-frontend.example.com"
+$env:ALLOWED_ORIGIN_2="https://admin.example.com"
+```
+
+## Stage B Hardening
+
+The backend now includes these production-hardening controls:
+
+- CORS is restricted to configured origins instead of wildcard access
+- HTTPS-only mode can be enforced with `REQUIRE_SSL=true`
+- API rate limiting is enabled by default
+- request logging records method, path, status, duration, principal, and client address
+- audit logging records authentication, chat access, and message send events
+- validation is stricter for usernames and request payloads
+- application log level is reduced from `DEBUG` to `INFO` by default
+
+### Notes on TLS
+
+TLS certificates and reverse-proxy termination are deployment concerns, so this project provides app-side enforcement rather than shipping certificates directly. In production, deploy behind HTTPS and enable:
+
+```powershell
+$env:REQUIRE_SSL="true"
+```
+
+If you run behind a proxy or load balancer, forward the standard proxy headers so Spring Security can correctly detect secure requests.
 
 ## Run Locally
 
@@ -355,6 +392,9 @@ Expected response:
 - The backend derives message sender identity from the authenticated token, not from the request body.
 - WebSocket presence tracking now uses the authenticated STOMP principal.
 - WebSocket presence changes are broadcast to all connected dashboards.
+- API requests are rate limited by default to reduce brute-force and abuse risk.
+- CORS is origin-restricted through configuration.
+- Audit logs record auth success/failure and chat/message actions.
 - Replace the default `JWT_SECRET` in real environments.
 
 ## HTML Test Client
