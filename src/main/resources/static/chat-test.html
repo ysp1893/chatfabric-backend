@@ -7,13 +7,14 @@
     <style>
         :root{--bg:#071120;--panel:#101a2d;--panel2:#18243a;--border:#304462;--text:#eef4ff;--muted:#91a6c5;--accent:#0ea5e9;--ok:#22c55e;--danger:#ef4444}
         *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#020817,#0b1730 55%,#071120);color:var(--text);padding:24px}
-        .wrap{max-width:1400px;margin:0 auto}.hero{margin-bottom:20px} h1{margin:0 0 8px;font-size:38px}.sub{color:var(--muted);max-width:850px;line-height:1.6}
+        .wrap{max-width:1400px;margin:0 auto}.hero{margin-bottom:20px} h1{margin:0 0 8px;font-size:38px}.sub{color:var(--muted);max-width:900px;line-height:1.6}
         .card{background:rgba(16,26,45,.95);border:1px solid var(--border);border-radius:18px;box-shadow:0 22px 48px rgba(0,0,0,.25);padding:20px}
         .hidden{display:none}.field{margin-bottom:14px} label{display:block;color:var(--muted);font-size:14px;margin-bottom:6px}
         input,textarea{width:100%;border:1px solid var(--border);border-radius:12px;background:var(--panel2);color:var(--text);padding:12px 14px;font-size:14px}
         textarea{resize:vertical;min-height:88px}.row{display:flex;gap:10px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:320px 320px minmax(0,1fr);gap:18px;align-items:start}
         button{border:0;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:700;color:#fff;cursor:pointer}.b1{background:var(--accent)}.b2{background:#475569}.b3{background:var(--ok)}.b4{background:var(--danger)}
         .pill{display:inline-block;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;background:#334155}.pill.on{background:rgba(34,197,94,.2);color:#86efac}
+        .status-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
         .head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}.head h2{margin:0;font-size:20px}
         .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}.stat{background:#0d1729;border:1px solid var(--border);border-radius:14px;padding:14px}
         .stat .v{font-size:24px;font-weight:800}.stat .l{font-size:12px;color:var(--muted);margin-top:4px}
@@ -22,7 +23,7 @@
         .tag{display:inline-block;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;margin-top:10px}.tag.on{background:rgba(34,197,94,.18);color:#86efac}.tag.off{background:rgba(148,163,184,.18);color:#cbd5e1}
         .chat{min-height:760px;display:flex;flex-direction:column}.meta{font-size:13px;color:var(--muted);line-height:1.5}.msgs{flex:1;min-height:420px;max-height:540px;overflow:auto;padding:16px;border-radius:18px;background:#091222;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
         .msg{max-width:78%;padding:12px 14px;border-radius:16px;background:#12203a;border:1px solid rgba(79,107,149,.35)}.msg.me{align-self:flex-end;background:rgba(14,165,233,.18);border-color:rgba(14,165,233,.45)}
-        .ma{font-size:12px;font-weight:700;color:#9ddcff;margin-bottom:6px}.mc{white-space:pre-wrap;line-height:1.55}.mt{font-size:11px;color:var(--muted);margin-top:8px;text-align:right}
+        .ma{font-size:12px;font-weight:700;color:#9ddcff;margin-bottom:6px}.mc{white-space:pre-wrap;line-height:1.55}.mt{font-size:11px;color:var(--muted);margin-top:8px;text-align:right}.mx{font-size:11px;color:#9fb5d6;margin-top:8px}
         .composer{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:16px}.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:rgba(15,23,42,.45)}
         pre{background:#020617;border:1px solid var(--border);border-radius:14px;padding:14px;min-height:180px;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:0}
         .hint{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
@@ -33,7 +34,7 @@
 <div class="wrap">
     <div class="hero">
         <h1>ChatFabric Chat Dashboard</h1>
-        <div class="sub">Log in first, then the page dynamically loads your chats and all available users. Click a user to open or auto-create a private chat, and send messages without entering any chat ID or user ID manually.</div>
+        <div class="sub">Log in first, then the page dynamically loads your chats and all available users. This Stage C2 prototype generates browser-managed keys, registers your public keys, encrypts messages before send, and decrypts them locally after delivery.</div>
     </div>
 
     <div class="card">
@@ -57,14 +58,17 @@
             <button id="loginButton" class="b3" type="button">Login</button>
             <button id="logoutButton" class="b4 hidden" type="button">Logout</button>
         </div>
-        <div class="hint">After login, the dashboard unlocks and opens the realtime connection using this JWT token.</div>
+        <div class="hint">After login, the dashboard unlocks, ensures your browser key pair is registered, and opens the realtime connection using this JWT token.</div>
     </div>
 
     <div id="dashboard" class="grid hidden" style="margin-top:20px;">
         <div class="card">
             <div class="head">
                 <h2>Your Space</h2>
-                <span id="wsStatus" class="pill">WS OFFLINE</span>
+                <div class="status-bar">
+                    <span id="cryptoStatus" class="pill">E2EE OFF</span>
+                    <span id="wsStatus" class="pill">WS OFFLINE</span>
+                </div>
             </div>
             <div class="stats">
                 <div class="stat"><div id="meName" class="v">-</div><div class="l">Signed In User</div></div>
@@ -78,6 +82,7 @@
                 <h2>Chats</h2>
                 <button id="refreshChatsButton" class="b2" type="button">Refresh</button>
             </div>
+            <div id="cryptoSummary" class="hint" style="margin-top:0;margin-bottom:12px;">E2EE is waiting for login.</div>
             <div id="chatList" class="list"></div>
         </div>
 
@@ -86,7 +91,7 @@
                 <h2>Available Users</h2>
                 <button id="refreshUsersButton" class="b2" type="button">Refresh</button>
             </div>
-            <div class="hint" style="margin-top:0;margin-bottom:12px;">Click a user to open an existing private chat or create one automatically.</div>
+            <div class="hint" style="margin-top:0;margin-bottom:12px;">Click a user to open an existing private chat or create one automatically. Messages are encrypted in the browser before they leave this page.</div>
             <div id="userList" class="list"></div>
         </div>
 
@@ -102,7 +107,7 @@
                 <div class="empty">No active chat yet. Select a user from the Available Users list or open an existing chat.</div>
             </div>
             <div id="composer" class="composer hidden">
-                <textarea id="messageDraft" placeholder="Write your message here..."></textarea>
+                <textarea id="messageDraft" placeholder="Write your message here. The browser will encrypt it before send."></textarea>
                 <button id="sendButton" class="b1" type="button">Send</button>
             </div>
         </div>
@@ -120,7 +125,26 @@
 <script src="https://unpkg.com/@stomp/stompjs@7.1.1/bundles/stomp.umd.min.js"></script>
 <script>
     (function () {
-        var state = { token: "", currentUser: null, users: [], chats: [], selectedChat: null, client: null, subscription: null, presenceSubscription: null, chatSubscriptions: {}, unreadCounts: {} };
+        var E2EE_ALGORITHM = "AES-GCM/RSA-OAEP-256/ECDSA-P256";
+
+        function initialState() {
+            return {
+                token: "",
+                currentUser: null,
+                users: [],
+                chats: [],
+                selectedChat: null,
+                client: null,
+                subscription: null,
+                presenceSubscription: null,
+                chatSubscriptions: {},
+                unreadCounts: {},
+                keyBundle: null,
+                publicKeyCache: {}
+            };
+        }
+
+        var state = initialState();
         var el = {
             apiBaseUrl: document.getElementById("apiBaseUrl"),
             loginUsername: document.getElementById("loginUsername"),
@@ -137,6 +161,8 @@
             clearLogButton: document.getElementById("clearLogButton"),
             sendButton: document.getElementById("sendButton"),
             wsStatus: document.getElementById("wsStatus"),
+            cryptoStatus: document.getElementById("cryptoStatus"),
+            cryptoSummary: document.getElementById("cryptoSummary"),
             meName: document.getElementById("meName"),
             chatCount: document.getElementById("chatCount"),
             chatList: document.getElementById("chatList"),
@@ -169,6 +195,7 @@
         function apiBase() { return el.apiBaseUrl.value.trim(); }
         function brokerUrl() { return (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/ws"; }
         function authHeaders() { return { "Authorization": "Bearer " + state.token, "Content-Type": "application/json" }; }
+        function hasCryptoSupport() { return !!(window.crypto && window.crypto.subtle); }
 
         async function request(path, options) {
             var cfg = options || {};
@@ -189,6 +216,186 @@
         function setWsConnected(value) {
             el.wsStatus.textContent = value ? "WS CONNECTED" : "WS OFFLINE";
             el.wsStatus.className = value ? "pill on" : "pill";
+        }
+
+        function setCryptoStatus(ready, text, detail) {
+            el.cryptoStatus.textContent = text || (ready ? "E2EE READY" : "E2EE OFF");
+            el.cryptoStatus.className = ready ? "pill on" : "pill";
+            el.cryptoSummary.textContent = detail || (ready ? "Browser-managed keys are active." : "E2EE is waiting for login.");
+        }
+
+        function arrayBufferToBase64(buffer) {
+            var bytes = new Uint8Array(buffer);
+            var binary = "";
+            var i;
+            for (i = 0; i < bytes.byteLength; i += 1) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function base64ToArrayBuffer(value) {
+            var binary = window.atob(value);
+            var bytes = new Uint8Array(binary.length);
+            var i;
+            for (i = 0; i < binary.length; i += 1) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function utf8ToBase64(value) {
+            return window.btoa(unescape(encodeURIComponent(value)));
+        }
+
+        function base64ToUtf8(value) {
+            return decodeURIComponent(escape(window.atob(value)));
+        }
+
+        function storageKeyForUser(userId) {
+            return "chatfabric.e2ee." + apiBase() + ".user." + userId;
+        }
+
+        function serializeKeyBundle(bundle) {
+            return JSON.stringify({
+                keyVersion: bundle.keyVersion,
+                publicEncryptionKey: bundle.publicEncryptionKey,
+                privateEncryptionKey: bundle.privateEncryptionKey,
+                publicSigningKey: bundle.publicSigningKey,
+                privateSigningKey: bundle.privateSigningKey
+            });
+        }
+
+        function saveLocalKeyBundle(bundle) {
+            window.localStorage.setItem(storageKeyForUser(state.currentUser.userId), serializeKeyBundle(bundle));
+        }
+
+        function loadLocalKeyBundle() {
+            var raw = window.localStorage.getItem(storageKeyForUser(state.currentUser.userId));
+            return raw ? JSON.parse(raw) : null;
+        }
+
+        async function importRsaPublicKey(base64Value) {
+            return window.crypto.subtle.importKey("spki", base64ToArrayBuffer(base64Value), { name: "RSA-OAEP", hash: "SHA-256" }, true, ["encrypt"]);
+        }
+
+        async function importRsaPrivateKey(base64Value) {
+            return window.crypto.subtle.importKey("pkcs8", base64ToArrayBuffer(base64Value), { name: "RSA-OAEP", hash: "SHA-256" }, true, ["decrypt"]);
+        }
+
+        async function importSigningPublicKey(base64Value) {
+            return window.crypto.subtle.importKey("spki", base64ToArrayBuffer(base64Value), { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+        }
+
+        async function importSigningPrivateKey(base64Value) {
+            return window.crypto.subtle.importKey("pkcs8", base64ToArrayBuffer(base64Value), { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+        }
+
+        async function hydrateKeyBundle(serialized) {
+            if (!serialized) { return null; }
+            return {
+                keyVersion: serialized.keyVersion,
+                publicEncryptionKey: serialized.publicEncryptionKey,
+                privateEncryptionKey: serialized.privateEncryptionKey,
+                publicSigningKey: serialized.publicSigningKey,
+                privateSigningKey: serialized.privateSigningKey,
+                encryptionPublicKey: await importRsaPublicKey(serialized.publicEncryptionKey),
+                encryptionPrivateKey: await importRsaPrivateKey(serialized.privateEncryptionKey),
+                signingPublicKey: await importSigningPublicKey(serialized.publicSigningKey),
+                signingPrivateKey: await importSigningPrivateKey(serialized.privateSigningKey)
+            };
+        }
+
+        async function generateKeyBundle(keyVersion) {
+            var encryptionPair = await window.crypto.subtle.generateKey({
+                name: "RSA-OAEP",
+                modulusLength: 2048,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256"
+            }, true, ["encrypt", "decrypt"]);
+            var signingPair = await window.crypto.subtle.generateKey({
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["sign", "verify"]);
+            return {
+                keyVersion: keyVersion,
+                publicEncryptionKey: arrayBufferToBase64(await window.crypto.subtle.exportKey("spki", encryptionPair.publicKey)),
+                privateEncryptionKey: arrayBufferToBase64(await window.crypto.subtle.exportKey("pkcs8", encryptionPair.privateKey)),
+                publicSigningKey: arrayBufferToBase64(await window.crypto.subtle.exportKey("spki", signingPair.publicKey)),
+                privateSigningKey: arrayBufferToBase64(await window.crypto.subtle.exportKey("pkcs8", signingPair.privateKey)),
+                encryptionPublicKey: encryptionPair.publicKey,
+                encryptionPrivateKey: encryptionPair.privateKey,
+                signingPublicKey: signingPair.publicKey,
+                signingPrivateKey: signingPair.privateKey
+            };
+        }
+
+        async function registerKeyBundle(bundle) {
+            var response = await request("/api/keys/register", {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    publicEncryptionKey: bundle.publicEncryptionKey,
+                    publicSigningKey: bundle.publicSigningKey,
+                    keyVersion: bundle.keyVersion
+                })
+            });
+            state.publicKeyCache[state.currentUser.userId] = response;
+            saveLocalKeyBundle(bundle);
+            state.keyBundle = bundle;
+            setCryptoStatus(true, "E2EE READY", "Browser-managed keys are active. Key version " + bundle.keyVersion + " is registered for " + state.currentUser.username + ".");
+            log("E2EE key registered", response);
+        }
+
+        async function fetchActiveKey(userId, allowMissing) {
+            if (state.publicKeyCache[userId]) {
+                return state.publicKeyCache[userId];
+            }
+            try {
+                state.publicKeyCache[userId] = await request("/api/keys/" + userId + "/active", {
+                    headers: { "Authorization": "Bearer " + state.token }
+                });
+                return state.publicKeyCache[userId];
+            } catch (error) {
+                if (allowMissing) {
+                    return null;
+                }
+                throw error;
+            }
+        }
+
+        async function ensureCurrentUserKeyBundle() {
+            if (!hasCryptoSupport()) {
+                throw new Error("This browser does not support Web Crypto, so the E2EE prototype cannot start.");
+            }
+            var remoteKey = await fetchActiveKey(state.currentUser.userId, true);
+            var localKey = await hydrateKeyBundle(loadLocalKeyBundle());
+
+            if (localKey && remoteKey &&
+                localKey.keyVersion === remoteKey.keyVersion &&
+                localKey.publicEncryptionKey === remoteKey.publicEncryptionKey &&
+                localKey.publicSigningKey === remoteKey.publicSigningKey) {
+                state.keyBundle = localKey;
+                setCryptoStatus(true, "E2EE READY", "Using your existing browser key pair. Key version " + localKey.keyVersion + " is active.");
+                return;
+            }
+
+            if (localKey && !remoteKey) {
+                await registerKeyBundle(localKey);
+                return;
+            }
+
+            if (localKey && remoteKey &&
+                (localKey.keyVersion !== remoteKey.keyVersion ||
+                    localKey.publicEncryptionKey !== remoteKey.publicEncryptionKey ||
+                    localKey.publicSigningKey !== remoteKey.publicSigningKey)) {
+                log("Active backend key differs from the current browser key pair. Rotating to a new browser-managed key version.");
+            } else if (!localKey && remoteKey) {
+                log("Active backend key exists but no local private key was found in this browser. Registering a new key version for this browser session.");
+            }
+
+            localKey = await generateKeyBundle(remoteKey ? (remoteKey.keyVersion + 1) : 1);
+            await registerKeyBundle(localKey);
         }
 
         function findOtherParticipant(chat) {
@@ -216,6 +423,142 @@
 
         function unreadCount(chatId) {
             return state.unreadCounts[chatId] || 0;
+        }
+
+        function canonicalMessagePayload(message) {
+            return JSON.stringify({
+                chatId: message.chatId,
+                ciphertext: message.ciphertext,
+                nonce: message.nonce,
+                algorithm: message.algorithm,
+                encryptedMessageKey: message.encryptedMessageKey,
+                keyVersion: message.keyVersion,
+                messageFormat: message.messageFormat || "E2EE_V1"
+            });
+        }
+
+        async function signMessagePayload(message) {
+            var signature = await window.crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                state.keyBundle.signingPrivateKey,
+                new TextEncoder().encode(canonicalMessagePayload(message))
+            );
+            return arrayBufferToBase64(signature);
+        }
+
+        async function verifyMessageSignature(message, wrappedDescriptor) {
+            var signingKeyValue = wrappedDescriptor.senderPublicSigningKey;
+            if (!signingKeyValue) {
+                var activeKey = await fetchActiveKey(message.senderId, true);
+                signingKeyValue = activeKey ? activeKey.publicSigningKey : null;
+            }
+            if (!signingKeyValue) {
+                return false;
+            }
+            return window.crypto.subtle.verify(
+                { name: "ECDSA", hash: "SHA-256" },
+                await importSigningPublicKey(signingKeyValue),
+                base64ToArrayBuffer(message.signature),
+                new TextEncoder().encode(canonicalMessagePayload(message))
+            );
+        }
+
+        async function createEncryptedPayload(chat, plaintext) {
+            if (!state.keyBundle) {
+                throw new Error("Your browser key pair is not ready yet.");
+            }
+            var recipient = findOtherParticipant(chat);
+            if (!recipient) {
+                throw new Error("Could not resolve the other participant for this chat.");
+            }
+
+            var recipientKey = await fetchActiveKey(recipient.userId, false);
+            var recipientPublicKey = await importRsaPublicKey(recipientKey.publicEncryptionKey);
+            var aesKey = await window.crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+            var rawAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
+            var nonce = window.crypto.getRandomValues(new Uint8Array(12));
+            var ciphertext = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: nonce },
+                aesKey,
+                new TextEncoder().encode(plaintext)
+            );
+            var wrappedForSender = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, state.keyBundle.encryptionPublicKey, rawAesKey);
+            var wrappedForRecipient = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, recipientPublicKey, rawAesKey);
+            var wrappedDescriptor = {
+                wrappers: [
+                    { userId: state.currentUser.userId, keyVersion: state.keyBundle.keyVersion, wrappedKey: arrayBufferToBase64(wrappedForSender) },
+                    { userId: recipient.userId, keyVersion: recipientKey.keyVersion, wrappedKey: arrayBufferToBase64(wrappedForRecipient) }
+                ],
+                senderPublicSigningKey: state.keyBundle.publicSigningKey,
+                senderPublicEncryptionKey: state.keyBundle.publicEncryptionKey,
+                senderKeyVersion: state.keyBundle.keyVersion
+            };
+            var payload = {
+                chatId: chat.id,
+                ciphertext: arrayBufferToBase64(ciphertext),
+                nonce: arrayBufferToBase64(nonce.buffer),
+                algorithm: E2EE_ALGORITHM,
+                encryptedMessageKey: utf8ToBase64(JSON.stringify(wrappedDescriptor)),
+                keyVersion: state.keyBundle.keyVersion,
+                messageFormat: "E2EE_V1"
+            };
+            payload.signature = await signMessagePayload(payload);
+            return payload;
+        }
+
+        async function decryptMessage(message) {
+            if (message.messageFormat !== "E2EE_V1") {
+                return {
+                    displayContent: message.content || "",
+                    cryptoLabel: "Legacy plaintext",
+                    cryptoDetail: "This message was stored before browser-side encryption was enabled."
+                };
+            }
+
+            if (!state.keyBundle) {
+                return {
+                    displayContent: "[Unable to decrypt: your browser key pair is not available.]",
+                    cryptoLabel: "Encrypted",
+                    cryptoDetail: "Load your browser-managed key pair first."
+                };
+            }
+
+            try {
+                var wrappedDescriptor = JSON.parse(base64ToUtf8(message.encryptedMessageKey));
+                var wrapper = (wrappedDescriptor.wrappers || []).filter(function (entry) {
+                    return entry.userId === state.currentUser.userId;
+                })[0];
+                if (!wrapper) {
+                    return {
+                        displayContent: "[Unable to decrypt: this encrypted key package does not include the current user.]",
+                        cryptoLabel: "Encrypted",
+                        cryptoDetail: "No wrapped message key was found for this user."
+                    };
+                }
+                var rawAesKey = await window.crypto.subtle.decrypt(
+                    { name: "RSA-OAEP" },
+                    state.keyBundle.encryptionPrivateKey,
+                    base64ToArrayBuffer(wrapper.wrappedKey)
+                );
+                var aesKey = await window.crypto.subtle.importKey("raw", rawAesKey, { name: "AES-GCM" }, false, ["decrypt"]);
+                var plaintextBuffer = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: new Uint8Array(base64ToArrayBuffer(message.nonce)) },
+                    aesKey,
+                    base64ToArrayBuffer(message.ciphertext)
+                );
+                var signatureValid = await verifyMessageSignature(message, wrappedDescriptor);
+                return {
+                    displayContent: new TextDecoder().decode(plaintextBuffer),
+                    cryptoLabel: "Encrypted",
+                    cryptoDetail: signatureValid ? "Signature verified" : "Signature could not be verified"
+                };
+            } catch (error) {
+                return {
+                    displayContent: "[Unable to decrypt message: " + error.message + "]",
+                    cryptoLabel: "Encrypted",
+                    cryptoDetail: "Decryption failed in this browser session."
+                };
+            }
         }
 
         function renderChats() {
@@ -272,7 +615,8 @@
                 node.className = "msg" + (mine ? " me" : "");
                 node.innerHTML =
                     '<div class="ma">' + escapeHtml(message.senderUsername) + '</div>' +
-                    '<div class="mc">' + escapeHtml(message.content) + '</div>' +
+                    '<div class="mc">' + escapeHtml(message.displayContent || message.content || "") + '</div>' +
+                    '<div class="mx">' + escapeHtml(message.cryptoLabel || "") + (message.cryptoDetail ? " | " + escapeHtml(message.cryptoDetail) : "") + '</div>' +
                     '<div class="mt">' + escapeHtml(formatDate(message.timestamp)) + '</div>';
                 el.messagesPanel.appendChild(node);
             });
@@ -290,7 +634,7 @@
             }
             var other = findOtherParticipant(state.selectedChat);
             el.chatTitle.textContent = other ? other.username : "Chat #" + state.selectedChat.id;
-            el.chatMeta.textContent = "Chat ID " + state.selectedChat.id + " • Participants: " + state.selectedChat.participants.map(function (p) { return p.username + " (" + p.status + ")"; }).join(", ");
+            el.chatMeta.textContent = "Chat ID " + state.selectedChat.id + " | Participants: " + state.selectedChat.participants.map(function (p) { return p.username + " (" + p.status + ")"; }).join(", ") + " | Send path: browser-side encrypted";
             el.refreshMessagesButton.classList.remove("hidden");
             el.composer.classList.remove("hidden");
         }
@@ -309,7 +653,10 @@
 
         async function fetchMessages() {
             if (!state.selectedChat) { return; }
-            renderMessages(await request("/api/messages/" + state.selectedChat.id, { headers: { "Authorization": "Bearer " + state.token } }));
+            var messages = await request("/api/messages/" + state.selectedChat.id, { headers: { "Authorization": "Bearer " + state.token } });
+            renderMessages(await Promise.all(messages.map(async function (message) {
+                return Object.assign({}, message, await decryptMessage(message));
+            })));
         }
 
         function unsubscribeSelectedChat() {
@@ -404,6 +751,7 @@
             state.unreadCounts[chat.id] = 0;
             renderChats();
             renderSelectedChat();
+            subscribeSelectedChat();
             await fetchMessages();
         }
 
@@ -429,7 +777,7 @@
                 connectHeaders: { Authorization: "Bearer " + state.token },
                 reconnectDelay: 3000,
                 debug: function (message) { log("STOMP debug", message); },
-                onConnect: function () { setWsConnected(true); log("Realtime connected"); subscribePresence(); subscribeAllChatStreams(); },
+                onConnect: function () { setWsConnected(true); log("Realtime connected"); subscribePresence(); subscribeAllChatStreams(); if (state.selectedChat) { subscribeSelectedChat(); } },
                 onStompError: function (frame) { log("Broker error", { headers: frame.headers, body: frame.body }); },
                 onWebSocketClose: function () { setWsConnected(false); log("Realtime disconnected"); },
                 onWebSocketError: function (event) { log("WebSocket error", event.type || event); }
@@ -461,6 +809,7 @@
             setAuthenticated(true);
             renderSelectedChat();
             log("Login successful", body);
+            await ensureCurrentUserKeyBundle();
             await fetchUsers();
             await fetchChats();
             await connectRealtime();
@@ -468,7 +817,7 @@
 
         function logout() {
             disconnectRealtime();
-            state = { token: "", currentUser: null, users: [], chats: [], selectedChat: null, client: null, subscription: null, presenceSubscription: null, chatSubscriptions: {}, unreadCounts: {} };
+            state = initialState();
             el.authToken.value = "";
             el.meName.textContent = "-";
             el.chatCount.textContent = "0";
@@ -476,6 +825,7 @@
             el.userList.innerHTML = "";
             renderSelectedChat();
             setAuthenticated(false);
+            setCryptoStatus(false, "E2EE OFF", "E2EE is waiting for login.");
             log("Logged out");
         }
 
@@ -484,10 +834,10 @@
             if (!state.client || !state.client.connected) { throw new Error("Realtime connection is not active"); }
             var content = el.messageDraft.value.trim();
             if (!content) { throw new Error("Message cannot be empty"); }
-            var payload = { chatId: state.selectedChat.id, content: content };
+            var payload = await createEncryptedPayload(state.selectedChat, content);
             state.client.publish({ destination: "/app/chat.sendMessage", body: JSON.stringify(payload), headers: { "content-type": "application/json" } });
             el.messageDraft.value = "";
-            log("Message sent", payload);
+            log("Encrypted message sent", payload);
         }
 
         el.loginButton.addEventListener("click", function () { login().catch(function (error) { log("Login failed", error.message); }); });
@@ -509,9 +859,13 @@
         el.apiBaseUrl.value = window.location.origin;
         setAuthenticated(false);
         setWsConnected(false);
+        setCryptoStatus(false, "E2EE OFF", hasCryptoSupport() ? "E2EE is waiting for login." : "This browser does not expose the Web Crypto APIs needed for the Stage C2 prototype.");
         renderSelectedChat();
         log("Ready. Login to load your chats, available users, and live messaging.");
     }());
 </script>
 </body>
 </html>
+
+
+

@@ -490,6 +490,94 @@ It does **not** yet include:
 
 Those belong to the next step after C1.
 
+## Stage C2: Browser Client Crypto Flow
+
+The browser test client now includes a practical E2EE prototype built on top of the C1 backend contracts.
+
+### What Stage C2 Adds
+
+- browser-managed encryption and signing key pairs
+- automatic public key registration after login
+- local private key storage in browser `localStorage`
+- encrypted send flow from the browser dashboard
+- local decryption when messages are fetched or received
+- client-side signature verification display
+
+### Browser Crypto Model
+
+The current prototype uses:
+
+- `RSA-OAEP (2048, SHA-256)` to wrap the per-message AES key for each participant
+- `AES-GCM (256-bit)` to encrypt message content
+- `ECDSA P-256` to sign the encrypted payload
+
+For each outgoing message, the browser:
+
+1. generates a fresh AES-GCM key
+2. encrypts the plaintext locally
+3. wraps that AES key for both sender and recipient
+4. signs the encrypted payload
+5. sends only the encrypted package to the backend
+
+The backend still stores and forwards the message, but it does not decrypt it.
+
+### Browser Key Behavior
+
+After login, `chat-test.html` will:
+
+1. check whether the current user already has an active public key on the backend
+2. check whether the matching private key exists in the current browser
+3. reuse that local key pair when possible
+4. register a new key version automatically when the browser has no matching private key
+
+Important:
+
+- this is a single-browser prototype
+- if you clear browser storage, old encrypted messages tied to the removed private key may no longer decrypt in that browser
+- key history lookup by version is not implemented yet, only the active key endpoint is used
+
+### How To Test Stage C2
+
+1. Start the backend and open:
+
+```text
+http://localhost:8080/chat-test.html
+```
+
+2. Log in as one user, for example `alice`
+
+3. Confirm the left panel shows:
+
+- `E2EE READY`
+- a key-version message in the crypto summary
+
+4. Log in from another browser or incognito window as `bob`
+
+5. Open or create a chat between the two users
+
+6. Send a message from one browser tab
+
+Expected:
+
+- the outgoing payload is encrypted before send
+- the receiving browser decrypts the message locally
+- the message panel shows an `Encrypted` status line
+- the status line also shows whether the signature verified
+
+7. Refresh the selected chat
+
+Expected:
+
+- encrypted messages remain readable in the same browser that still holds the private key
+
+### Current Stage C2 Limitations
+
+- this is still a prototype browser client, not a production key-management system
+- private keys are stored in browser local storage for demo purposes
+- key history retrieval by version is not available yet
+- multi-device support is not available yet
+- existing legacy plaintext messages still render as `Legacy plaintext`
+
 ## HTML Test Client
 
 The browser test client lives at:
@@ -506,3 +594,6 @@ It is intended for local validation of:
 - realtime message send/receive
 - realtime presence updates
 - unread indicators for inactive chats
+- automatic browser key generation and registration
+- browser-side encrypted messaging
+- local decryption and signature verification display
