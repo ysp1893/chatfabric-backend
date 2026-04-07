@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatFabric STOMP Test Client</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-alt: #1f2937;
+            --border: #334155;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --accent-alt: #0ea5e9;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #020617, #0f172a 45%, #111827);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-alt);
+            color: var(--text);
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: var(--accent-alt);
+        }
+
+        button.success {
+            background: var(--accent);
+        }
+
+        button.danger {
+            background: var(--danger);
+        }
+
+        button.secondary {
+            background: #475569;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #3f3f46;
+            color: white;
+        }
+
+        .status.connected {
+            background: var(--accent);
+        }
+
+        .status.disconnected {
+            background: var(--danger);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 360px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>ChatFabric STOMP Test Client</h1>
+    <div class="subtitle">Connect to the chat backend, subscribe to a topic, and send messages over STOMP.</div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Connection</h2>
+
+            <div class="field">
+                <label for="brokerUrl">WebSocket URL</label>
+                <input id="brokerUrl" type="text" value="">
+            </div>
+
+            <div class="field">
+                <label for="userId">User ID Header</label>
+                <input id="userId" type="number" value="1" min="1">
+            </div>
+
+            <div class="field">
+                <label>Connection Status</label>
+                <span id="connectionStatus" class="status disconnected">DISCONNECTED</span>
+            </div>
+
+            <div class="actions">
+                <button id="connectButton" class="primary" type="button">Connect</button>
+                <button id="disconnectButton" class="danger" type="button">Disconnect</button>
+            </div>
+
+            <div class="hint">The app sends the <code>userId</code> header during STOMP connect so presence tracking can work.</div>
+        </div>
+
+        <div class="card">
+            <h2>Subscription</h2>
+
+            <div class="field">
+                <label for="topicDestination">Topic Destination</label>
+                <input id="topicDestination" type="text" value="/topic/messages/1">
+            </div>
+
+            <div class="actions">
+                <button id="subscribeButton" class="success" type="button">Subscribe</button>
+                <button id="unsubscribeButton" class="secondary" type="button">Unsubscribe</button>
+            </div>
+
+            <div class="hint">Use the chat ID you created from the REST API, for example <code>/topic/messages/1</code>.</div>
+        </div>
+
+        <div class="card">
+            <h2>Send Message</h2>
+
+            <div class="field">
+                <label for="sendDestination">Send Destination</label>
+                <input id="sendDestination" type="text" value="/app/chat.sendMessage">
+            </div>
+
+            <div class="field">
+                <label for="messagePayload">JSON Payload</label>
+                <textarea id="messagePayload">{
+  "chatId": 1,
+  "senderId": 1,
+  "content": "Hello from browser STOMP client"
+}</textarea>
+            </div>
+
+            <div class="actions">
+                <button id="sendButton" class="primary" type="button">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <h2>Event Log</h2>
+        <div class="actions" style="margin-top: 0; margin-bottom: 14px;">
+            <button id="clearLogButton" class="secondary" type="button">Clear Log</button>
+        </div>
+        <pre id="eventLog"></pre>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@stomp/stompjs@7.1.1/bundles/stomp.umd.min.js"></script>
+<script>
+    (function () {
+        var client = null;
+        var subscription = null;
+
+        var brokerUrlInput = document.getElementById("brokerUrl");
+        var userIdInput = document.getElementById("userId");
+        var topicDestinationInput = document.getElementById("topicDestination");
+        var sendDestinationInput = document.getElementById("sendDestination");
+        var messagePayloadInput = document.getElementById("messagePayload");
+        var eventLog = document.getElementById("eventLog");
+        var connectionStatus = document.getElementById("connectionStatus");
+
+        function log(message, data) {
+            var timestamp = new Date().toLocaleTimeString();
+            var line = "[" + timestamp + "] " + message;
+            if (typeof data !== "undefined") {
+                if (typeof data === "string") {
+                    line += "\n" + data;
+                } else {
+                    line += "\n" + JSON.stringify(data, null, 2);
+                }
+            }
+            eventLog.textContent = line + "\n\n" + eventLog.textContent;
+        }
+
+        function setConnectedState(isConnected) {
+            connectionStatus.textContent = isConnected ? "CONNECTED" : "DISCONNECTED";
+            connectionStatus.className = "status " + (isConnected ? "connected" : "disconnected");
+        }
+
+        function resolveDefaultBrokerUrl() {
+            var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            return protocol + window.location.host + "/ws";
+        }
+
+        function ensureClient() {
+            if (!client || !client.connected) {
+                throw new Error("STOMP client is not connected");
+            }
+        }
+
+        document.getElementById("connectButton").addEventListener("click", function () {
+            if (client && client.connected) {
+                log("Already connected");
+                return;
+            }
+
+            client = new StompJs.Client({
+                brokerURL: brokerUrlInput.value.trim(),
+                connectHeaders: {
+                    userId: String(userIdInput.value).trim()
+                },
+                reconnectDelay: 0,
+                debug: function (message) {
+                    log("STOMP debug", message);
+                },
+                onConnect: function (frame) {
+                    setConnectedState(true);
+                    log("Connected", frame.headers);
+                },
+                onStompError: function (frame) {
+                    log("Broker error", {
+                        headers: frame.headers,
+                        body: frame.body
+                    });
+                },
+                onWebSocketError: function (event) {
+                    log("WebSocket error", event.type || event);
+                },
+                onWebSocketClose: function () {
+                    setConnectedState(false);
+                    log("WebSocket connection closed");
+                }
+            });
+
+            client.activate();
+            log("Connecting", {
+                brokerURL: brokerUrlInput.value.trim(),
+                userId: String(userIdInput.value).trim()
+            });
+        });
+
+        document.getElementById("disconnectButton").addEventListener("click", function () {
+            if (!client) {
+                log("No client to disconnect");
+                return;
+            }
+
+            if (subscription) {
+                subscription.unsubscribe();
+                subscription = null;
+            }
+
+            client.deactivate();
+            client = null;
+            setConnectedState(false);
+            log("Disconnected by user");
+        });
+
+        document.getElementById("subscribeButton").addEventListener("click", function () {
+            try {
+                ensureClient();
+                if (subscription) {
+                    subscription.unsubscribe();
+                }
+
+                var destination = topicDestinationInput.value.trim();
+                subscription = client.subscribe(destination, function (message) {
+                    var parsedBody = message.body;
+                    try {
+                        parsedBody = JSON.parse(message.body);
+                    } catch (ignored) {
+                    }
+                    log("Message received on " + destination, parsedBody);
+                });
+
+                log("Subscribed", destination);
+            } catch (error) {
+                log("Subscribe failed", error.message);
+            }
+        });
+
+        document.getElementById("unsubscribeButton").addEventListener("click", function () {
+            if (!subscription) {
+                log("No active subscription");
+                return;
+            }
+
+            subscription.unsubscribe();
+            subscription = null;
+            log("Unsubscribed");
+        });
+
+        document.getElementById("sendButton").addEventListener("click", function () {
+            try {
+                ensureClient();
+                var destination = sendDestinationInput.value.trim();
+                var payload = messagePayloadInput.value.trim();
+
+                JSON.parse(payload);
+
+                client.publish({
+                    destination: destination,
+                    body: payload,
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                });
+
+                log("Message sent to " + destination, JSON.parse(payload));
+            } catch (error) {
+                log("Send failed", error.message);
+            }
+        });
+
+        document.getElementById("clearLogButton").addEventListener("click", function () {
+            eventLog.textContent = "";
+        });
+
+        brokerUrlInput.value = resolveDefaultBrokerUrl();
+        setConnectedState(false);
+        log("Ready. Connect, subscribe, then send a message.");
+    }());
+</script>
+</body>
+</html>
