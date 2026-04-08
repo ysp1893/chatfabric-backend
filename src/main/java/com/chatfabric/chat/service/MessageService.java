@@ -88,22 +88,11 @@ public class MessageService {
         boolean hasContent = content != null && !content.isEmpty();
 
         if (requestedFormat == null) {
-            requestedFormat = hasCiphertext ? MessageFormat.E2EE_V1 : MessageFormat.PLAINTEXT_V1;
+            requestedFormat = MessageFormat.E2EE_V1;
         }
 
-        if (requestedFormat == MessageFormat.PLAINTEXT_V1) {
-            if (!hasContent) {
-                throw new BadRequestException("Plaintext message content must not be blank");
-            }
-            return new MessagePayload(
-                    MessageFormat.PLAINTEXT_V1,
-                    content,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-            );
+        if (requestedFormat == MessageFormat.PLAINTEXT_V1 || hasContent) {
+            throw new BadRequestException("Plaintext message creation is disabled. Encrypt in the client and send an E2EE_V1 payload.");
         }
 
         if (requestedFormat != MessageFormat.E2EE_V1) {

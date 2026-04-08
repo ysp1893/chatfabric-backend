@@ -52,7 +52,7 @@ com.chatfabric.chat
 - Request logging and audit event logging
 - Stronger username and payload validation
 - E2EE-ready public key registration and lookup APIs
-- Dual-mode message model supporting both legacy plaintext and encrypted payload metadata
+- Encrypted-only message creation for new traffic, while preserving legacy plaintext message reads
 
 ## API Summary
 
@@ -577,6 +577,73 @@ Expected:
 - key history retrieval by version is not available yet
 - multi-device support is not available yet
 - existing legacy plaintext messages still render as `Legacy plaintext`
+
+## Stage C3: Encrypted-Only Messaging
+
+The system now moves from dual-mode message creation to encrypted-only creation for all new traffic.
+
+### What Stage C3 Changes
+
+- the backend no longer accepts new `PLAINTEXT_V1` message creation
+- any send request containing plaintext `content` is rejected
+- new messages must be sent as `E2EE_V1`
+- historical plaintext messages remain readable for migration purposes
+
+### New Send Rule
+
+The following send payload is now rejected:
+
+```json
+{
+  "chatId": 1,
+  "content": "Hello Bob"
+}
+```
+
+The backend now requires an encrypted payload package for every new message:
+
+```json
+{
+  "chatId": 1,
+  "messageFormat": "E2EE_V1",
+  "ciphertext": "base64-ciphertext",
+  "nonce": "base64-nonce",
+  "algorithm": "AES-GCM/RSA-OAEP-256/ECDSA-P256",
+  "encryptedMessageKey": "base64-wrapped-key-package",
+  "signature": "base64-signature",
+  "keyVersion": 1
+}
+```
+
+If plaintext content is submitted, the API responds with a bad-request error explaining that plaintext creation is disabled and the client must encrypt before send.
+
+### How To Verify Stage C3
+
+1. Open [http://localhost:8080/chat-test.html](http://localhost:8080/chat-test.html)
+2. Log in as two users in separate browser sessions
+3. Send a message from the dashboard
+4. Confirm the message still arrives and decrypts in the recipient browser
+5. Try posting a plaintext REST message manually
+
+Example plaintext request that should now fail:
+
+```http
+POST http://localhost:8080/api/messages
+Authorization: Bearer <jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "chatId": 1,
+  "content": "This should fail now"
+}
+```
+
+Expected result:
+
+- HTTP `400 Bad Request`
+- error message indicating plaintext creation is disabled
 
 ## HTML Test Client
 
