@@ -664,3 +664,31 @@ It is intended for local validation of:
 - automatic browser key generation and registration
 - browser-side encrypted messaging
 - local decryption and signature verification display
+
+## One-Click Smoke Test
+
+For a single-command verification of the main Stage A to C3 flows, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run-smoke-test.ps1
+```
+
+Optional custom base URL:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run-smoke-test.ps1 -BaseUrl "http://localhost:8090"
+```
+
+The smoke test covers:
+
+- anonymous access rejection
+- user registration and login
+- authenticated user/profile APIs
+- private chat creation
+- public key registration and lookup
+- encrypted-only enforcement for new messages
+- encrypted REST message storage
+- STOMP connect, presence updates, and encrypted realtime messaging
+- final message history verification
+
+The script creates temporary unique users on each run, so it is safe to execute multiple times against the same database.
