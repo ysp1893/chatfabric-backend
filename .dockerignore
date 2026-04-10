@@ -1,0 +1,13 @@
+target/
+.git/
+.gitignore
+README.md
+BACKEND_ROADMAP.md
+.idea/
+*.iml
+.vscode/
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
