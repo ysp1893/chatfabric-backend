@@ -696,6 +696,24 @@ When you want to restore strict encrypted-only behavior:
 export E2EE_REQUIRED=true
 ```
 
+## CORS Origin Configuration
+
+The backend now accepts a single comma-separated environment variable for CORS origins:
+
+```bash
+export ALLOWED_ORIGINS="http://localhost:4200,http://127.0.0.1:4200,http://192.168.24.30:4200,http://192.168.24.30:8080"
+```
+
+This is easier to manage than fixed numbered slots and lets you add as many frontend origins as needed.
+
+Example Angular + backend setup:
+
+```bash
+export ALLOWED_ORIGINS="http://localhost:4200,http://127.0.0.1:4200,http://192.168.24.30:4200,http://192.168.24.30:8080"
+```
+
+After changing `ALLOWED_ORIGINS`, restart the backend so the new values are applied.
+
 ## HTML Test Client
 
 The browser test client lives at:
