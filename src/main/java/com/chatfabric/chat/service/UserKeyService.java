@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -60,6 +61,32 @@ public class UserKeyService {
                     }
                 });
         return toResponse(key);
+    }
+
+    @Transactional(readOnly = true)
+    public UserKeyResponse getKeyByVersion(Long userId, Integer keyVersion) {
+        UserKey key = userKeyRepository.findByUserIdAndKeyVersion(userId, keyVersion)
+                .orElseThrow(new java.util.function.Supplier<ResourceNotFoundException>() {
+                    @Override
+                    public ResourceNotFoundException get() {
+                        return new ResourceNotFoundException("Public key version=" + keyVersion + " not found for user id=" + userId);
+                    }
+                });
+        return toResponse(key);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserKeyResponse> getKeyHistory(Long userId) {
+        List<UserKey> keys = userKeyRepository.findAllByUserIdOrderByKeyVersionDesc(userId);
+        if (keys.isEmpty()) {
+            throw new ResourceNotFoundException("No public key history found for user id=" + userId);
+        }
+
+        List<UserKeyResponse> responses = new ArrayList<UserKeyResponse>();
+        for (UserKey key : keys) {
+            responses.add(toResponse(key));
+        }
+        return responses;
     }
 
     private UserKeyResponse toResponse(UserKey key) {

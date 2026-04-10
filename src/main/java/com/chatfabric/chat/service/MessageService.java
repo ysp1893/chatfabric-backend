@@ -2,6 +2,7 @@ package com.chatfabric.chat.service;
 
 import com.chatfabric.chat.dto.message.MessageResponse;
 import com.chatfabric.chat.dto.message.SendMessageRequest;
+import com.chatfabric.chat.config.properties.E2eeProperties;
 import com.chatfabric.chat.entity.Chat;
 import com.chatfabric.chat.entity.Message;
 import com.chatfabric.chat.entity.MessageFormat;
@@ -25,15 +26,18 @@ public class MessageService {
     private final ChatService chatService;
     private final UserService userService;
     private final AuditService auditService;
+    private final E2eeProperties e2eeProperties;
 
     public MessageService(MessageRepository messageRepository,
                           ChatService chatService,
                           UserService userService,
-                          AuditService auditService) {
+                          AuditService auditService,
+                          E2eeProperties e2eeProperties) {
         this.messageRepository = messageRepository;
         this.chatService = chatService;
         this.userService = userService;
         this.auditService = auditService;
+        this.e2eeProperties = e2eeProperties;
     }
 
     @Transactional
@@ -88,10 +92,28 @@ public class MessageService {
         boolean hasContent = content != null && !content.isEmpty();
 
         if (requestedFormat == null) {
-            requestedFormat = MessageFormat.E2EE_V1;
+            requestedFormat = hasCiphertext ? MessageFormat.E2EE_V1 : MessageFormat.PLAINTEXT_V1;
         }
 
-        if (requestedFormat == MessageFormat.PLAINTEXT_V1 || hasContent) {
+        if (requestedFormat == MessageFormat.PLAINTEXT_V1) {
+            if (e2eeProperties.isRequired()) {
+                throw new BadRequestException("Plaintext message creation is disabled. Encrypt in the client and send an E2EE_V1 payload.");
+            }
+            if (!hasContent) {
+                throw new BadRequestException("Plaintext message content must not be blank");
+            }
+            return new MessagePayload(
+                    MessageFormat.PLAINTEXT_V1,
+                    content,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        if (hasContent && e2eeProperties.isRequired()) {
             throw new BadRequestException("Plaintext message creation is disabled. Encrypt in the client and send an E2EE_V1 payload.");
         }
 

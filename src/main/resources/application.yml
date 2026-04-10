@@ -34,6 +34,8 @@ logging:
 app:
   presence:
     store: ${PRESENCE_STORE:in-memory}
+  e2ee:
+    required: ${E2EE_REQUIRED:true}
   security:
     require-ssl: ${REQUIRE_SSL:false}
     allowed-origins:

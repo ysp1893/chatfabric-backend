@@ -10,7 +10,11 @@ public interface UserKeyRepository extends JpaRepository<UserKey, Long> {
 
     Optional<UserKey> findByUserIdAndActiveTrue(Long userId);
 
+    Optional<UserKey> findByUserIdAndKeyVersion(Long userId, Integer keyVersion);
+
     boolean existsByUserIdAndKeyVersion(Long userId, Integer keyVersion);
 
     List<UserKey> findAllByUserIdAndActiveTrue(Long userId);
+
+    List<UserKey> findAllByUserIdOrderByKeyVersionDesc(Long userId);
 }

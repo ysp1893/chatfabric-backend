@@ -63,7 +63,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, "/api/users/register", "/api/auth/login").permitAll()
-                .antMatchers(HttpMethod.GET, "/", "/chat-test.html", "/error").permitAll()
+                .antMatchers(HttpMethod.GET, "/", "/chat-test.html", "/error", "/api/client-config").permitAll()
                 .antMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated();
 

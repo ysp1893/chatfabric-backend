@@ -440,6 +440,20 @@ GET http://localhost:8080/api/keys/2/active
 Authorization: Bearer <jwt>
 ```
 
+Fetch a specific historical public key version for a user:
+
+```http
+GET http://localhost:8080/api/keys/2/versions/1
+Authorization: Bearer <jwt>
+```
+
+Fetch the full public-key history for a user, ordered by newest version first:
+
+```http
+GET http://localhost:8080/api/keys/2
+Authorization: Bearer <jwt>
+```
+
 ### Message Formats
 
 Legacy plaintext messages still work:
@@ -476,6 +490,22 @@ For `E2EE_V1`, the backend validates that:
 - `keyVersion` is valid
 
 The backend stores these encrypted fields but does not decrypt them.
+
+### Key History Lookup By Version
+
+The backend now supports key history lookup by version.
+
+This helps when:
+
+- a user rotates from key version `1` to key version `2`
+- older encrypted messages still reference `keyVersion = 1`
+- a client needs to inspect or verify the exact public key that was active when an older message was created
+
+Important:
+
+- only public keys are stored and exposed through this history
+- private keys still remain client-side only
+- the existing active-key endpoint remains the default path for current traffic
 
 ### Current Scope
 
@@ -644,6 +674,27 @@ Expected result:
 
 - HTTP `400 Bad Request`
 - error message indicating plaintext creation is disabled
+
+### Temporary E2EE Disable For Non-HTTPS Environments
+
+If you need to run the browser test page over plain HTTP on an IP address, you can temporarily disable strict E2EE enforcement:
+
+```bash
+export E2EE_REQUIRED=false
+```
+
+With `E2EE_REQUIRED=false`:
+
+- the backend accepts new plaintext message creation again
+- the browser dashboard skips the Web Crypto requirement
+- the UI shows `E2EE OPTIONAL`
+- this is intended only for temporary/dev environments
+
+When you want to restore strict encrypted-only behavior:
+
+```bash
+export E2EE_REQUIRED=true
+```
 
 ## HTML Test Client
 

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Validated
 @RestController
@@ -38,5 +39,16 @@ public class UserKeyController {
     @GetMapping("/{userId}/active")
     public UserKeyResponse getActiveKey(@PathVariable Long userId) {
         return userKeyService.getActiveKey(userId);
+    }
+
+    @GetMapping("/{userId}/versions/{keyVersion}")
+    public UserKeyResponse getKeyByVersion(@PathVariable Long userId,
+                                           @PathVariable Integer keyVersion) {
+        return userKeyService.getKeyByVersion(userId, keyVersion);
+    }
+
+    @GetMapping("/{userId}")
+    public List<UserKeyResponse> getKeyHistory(@PathVariable Long userId) {
+        return userKeyService.getKeyHistory(userId);
     }
 }

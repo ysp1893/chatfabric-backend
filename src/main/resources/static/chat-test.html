@@ -55,10 +55,11 @@
             <textarea id="authToken" readonly></textarea>
         </div>
         <div class="row">
+            <button id="registerButton" class="b1" type="button">Register</button>
             <button id="loginButton" class="b3" type="button">Login</button>
             <button id="logoutButton" class="b4 hidden" type="button">Logout</button>
         </div>
-        <div class="hint">After login, the dashboard unlocks, ensures your browser key pair is registered, and opens the realtime connection using this JWT token.</div>
+        <div class="hint">Register a new user first if needed. After login, the dashboard unlocks, ensures your browser key pair is registered, and opens the realtime connection using this JWT token.</div>
     </div>
 
     <div id="dashboard" class="grid hidden" style="margin-top:20px;">
@@ -140,7 +141,8 @@
                 chatSubscriptions: {},
                 unreadCounts: {},
                 keyBundle: null,
-                publicKeyCache: {}
+                publicKeyCache: {},
+                clientConfig: { e2eeRequired: true }
             };
         }
 
@@ -150,6 +152,7 @@
             loginUsername: document.getElementById("loginUsername"),
             loginPassword: document.getElementById("loginPassword"),
             authToken: document.getElementById("authToken"),
+            registerButton: document.getElementById("registerButton"),
             loginButton: document.getElementById("loginButton"),
             logoutButton: document.getElementById("logoutButton"),
             dashboard: document.getElementById("dashboard"),
@@ -196,6 +199,7 @@
         function brokerUrl() { return (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/ws"; }
         function authHeaders() { return { "Authorization": "Bearer " + state.token, "Content-Type": "application/json" }; }
         function hasCryptoSupport() { return !!(window.crypto && window.crypto.subtle); }
+        function isE2eeRequired() { return !state.clientConfig || state.clientConfig.e2eeRequired !== false; }
 
         async function request(path, options) {
             var cfg = options || {};
@@ -222,6 +226,14 @@
             el.cryptoStatus.textContent = text || (ready ? "E2EE READY" : "E2EE OFF");
             el.cryptoStatus.className = ready ? "pill on" : "pill";
             el.cryptoSummary.textContent = detail || (ready ? "Browser-managed keys are active." : "E2EE is waiting for login.");
+        }
+
+        async function fetchClientConfig() {
+            state.clientConfig = await request("/api/client-config");
+            if (!isE2eeRequired()) {
+                setCryptoStatus(false, "E2EE OPTIONAL", "Server-side E2EE enforcement is disabled for this environment. Plaintext fallback is allowed.");
+            }
+            return state.clientConfig;
         }
 
         function arrayBufferToBase64(buffer) {
@@ -365,6 +377,11 @@
         }
 
         async function ensureCurrentUserKeyBundle() {
+            if (!isE2eeRequired()) {
+                state.keyBundle = null;
+                setCryptoStatus(false, "E2EE OPTIONAL", "Server-side E2EE enforcement is disabled for this environment. Plaintext fallback is allowed.");
+                return;
+            }
             if (!hasCryptoSupport()) {
                 throw new Error("This browser does not support Web Crypto, so the E2EE prototype cannot start.");
             }
@@ -797,6 +814,7 @@
         }
 
         async function login() {
+            await fetchClientConfig();
             var body = await request("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -809,10 +827,29 @@
             setAuthenticated(true);
             renderSelectedChat();
             log("Login successful", body);
-            await ensureCurrentUserKeyBundle();
+            if (isE2eeRequired()) {
+                await ensureCurrentUserKeyBundle();
+            } else {
+                setCryptoStatus(false, "E2EE OPTIONAL", "Server-side E2EE enforcement is disabled for this environment. Plaintext fallback is allowed.");
+            }
             await fetchUsers();
             await fetchChats();
             await connectRealtime();
+        }
+
+        async function registerUser() {
+            var username = el.loginUsername.value.trim();
+            var password = el.loginPassword.value;
+            if (!username) { throw new Error("Username is required for registration"); }
+            if (!password) { throw new Error("Password is required for registration"); }
+
+            var body = await request("/api/users/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            });
+
+            log("Registration successful", body);
         }
 
         function logout() {
@@ -834,12 +871,15 @@
             if (!state.client || !state.client.connected) { throw new Error("Realtime connection is not active"); }
             var content = el.messageDraft.value.trim();
             if (!content) { throw new Error("Message cannot be empty"); }
-            var payload = await createEncryptedPayload(state.selectedChat, content);
+            var payload = isE2eeRequired()
+                ? await createEncryptedPayload(state.selectedChat, content)
+                : { chatId: state.selectedChat.id, content: content, messageFormat: "PLAINTEXT_V1" };
             state.client.publish({ destination: "/app/chat.sendMessage", body: JSON.stringify(payload), headers: { "content-type": "application/json" } });
             el.messageDraft.value = "";
-            log("Encrypted message sent", payload);
+            log(isE2eeRequired() ? "Encrypted message sent" : "Plaintext fallback message sent", payload);
         }
 
+        el.registerButton.addEventListener("click", function () { registerUser().catch(function (error) { log("Registration failed", error.message); }); });
         el.loginButton.addEventListener("click", function () { login().catch(function (error) { log("Login failed", error.message); }); });
         el.logoutButton.addEventListener("click", logout);
         el.connectButton.addEventListener("click", function () { connectRealtime().catch(function (error) { log("Realtime connect failed", error.message); }); });
@@ -859,6 +899,7 @@
         el.apiBaseUrl.value = window.location.origin;
         setAuthenticated(false);
         setWsConnected(false);
+        state.clientConfig = { e2eeRequired: true };
         setCryptoStatus(false, "E2EE OFF", hasCryptoSupport() ? "E2EE is waiting for login." : "This browser does not expose the Web Crypto APIs needed for the Stage C2 prototype.");
         renderSelectedChat();
         log("Ready. Login to load your chats, available users, and live messaging.");
